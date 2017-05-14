@@ -1,0 +1,20 @@
+    <div class="container">
+        <form method="post" name="login" action="login.php" class="authorization-form">
+            <label>
+                Логин
+                <input type="text" name="login" pattern="\D{1, 20}" required value="<?= (isset($post['login'])) ? htmlspecialchars($post['login'], ENT_QUOTES) : '' ?>">
+                <span class="form-error">
+                    <?= (isset($errors) and array_key_exists('login', $errors) ? $errors['login'] : '' ) ?>
+                </span>
+            </label>
+
+            <label>
+                Пароль
+                <input type="password" name="password" pattern="(.){6,20}" required>
+            </label>
+
+            <input type="submit" name="input" value="Войти">
+
+            <label><a href="registration.php">Регистрация</a></label>
+        </form>
+    </div>

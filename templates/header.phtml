@@ -1,0 +1,13 @@
+    <header>
+        <?php if ($logged) : ?>
+            <ul class="authorization-menu">
+                <li><b><?= $logged->getName() ?></b></li>
+                <li>
+                    <form method="post" name="logout" action="logout.php">
+                        <input type="hidden" name="token" value="<?= $_COOKIE['token'] ?>">
+                        <input type="submit" value="Выход">
+                    </form>
+                </li>
+            </ul>
+        <?php endif; ?>
+    </header>

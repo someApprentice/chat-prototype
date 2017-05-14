@@ -1,0 +1,41 @@
+    <div class="chat-box">
+        <ul class="contacts">
+            <form method="get" name="search-form" class="search-form" action="search.php">
+                <input type="text" name="q" value="<?= isset($query) ? $query : '' ?>">
+                <input type="submit" name="search" value="Поиск">
+            </form>
+
+            <?php if (isset($contacts) and !empty($contacts)) : ?>
+                <?php foreach($contacts as $contact) : ?>
+                    <li class="<?= (isset($with) and $contact->getId() == $with) ? 'checked' : '' ?>"><a data-with="<?= $contact->getId() ?>" href="conversation.php?with=<?= $contact->getId() ?>"><label><?= $contact->getName() ?></label></a></li>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <span class="contacts-not-found">Ничего не найдено</span>
+            <?php endif; ?>
+        </ul>
+        <div class="conversation">
+            <?php if (isset($messages)) : ?>
+                <div class="messages">
+                    <?php foreach ($messages as $message) : ?>
+                        <div data-message-id="<?= $message->getId() ?>" class="message">
+                            <span class="date"><?= $message->getDate() ?></span>
+                            <div class="message-container">
+                                <div class="author"><a href="user.php?id=<?= $message->getAuthor()->getId() ?>"><?= $message->getAuthor()->getName() ?></a></div>
+                                <div class="content"><?= $message->getContent() ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($with)) : ?>
+                 <form method="post" name="message-form" class="message-form" data-send-to="<?= isset($with) ? $with : '' ?>"" action="send.php?to=<?= isset($with) ? $with : '' ?>">
+                     <textarea name="message"></textarea>
+
+                     <input type="submit" name="submit" value="Отправить">
+                 </form>
+             <?php else : ?>
+                 <div class="select-dialog">Выбирите диалог</div>
+             <?php endif; ?>
+        </div>
+    </div>
