@@ -10,6 +10,8 @@ Contreller.prototype.getConversation = function(withUser) {
         that.view.messageForm(withUser);
         that.view.messages(results);
         that.moveMessagesToBottom();
+        
+        $('.messages').scrollTop($('.messages')[0].scrollHeight);
 
         window.history.pushState({}, '', '/conversation.php?with=' + withUser);
     });
@@ -124,8 +126,6 @@ View.prototype.messages = function(messages) {
         $('<div/>', {class: 'content'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
         $('.message[data-message-id=' + message.id + '] .content').html(message.content);
     });
-
-    $('.messages').scrollTop($('.messages')[0].scrollHeight);
 };
 
 View.prototype.addSpaceToFirstMessage = function(space) {
