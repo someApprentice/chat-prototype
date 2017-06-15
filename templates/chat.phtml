@@ -16,15 +16,19 @@
         <div class="conversation">
             <?php if (isset($messages)) : ?>
                 <div class="messages">
-                    <?php foreach ($messages as $message) : ?>
-                        <div data-message-id="<?= $message->getId() ?>" class="message">
-                            <span class="date"><?= $message->getDate() ?></span>
-                            <div class="message-container">
-                                <div class="author"><a href="user.php?id=<?= $message->getAuthor()->getId() ?>"><?= $message->getAuthor()->getName() ?></a></div>
-                                <div class="content"><?= $message->getContent() ?></div>
+                    <?php if (isset($with)) : ?>
+                        <?php foreach ($messages as $message) : ?>
+                            <div data-message-id="<?= $message->getId() ?>" class="message">
+                                <span class="date"><?= $message->getDate() ?></span>
+                                <div class="message-container">
+                                    <div class="author"><a href="user.php?id=<?= $message->getAuthor()->getId() ?>"><?= $message->getAuthor()->getName() ?></a></div>
+                                    <div class="content"><?= $message->getContent() ?></div>
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                     <?php else : ?>
+                         <div class="select-dialog">Выбирите диалог</div>
+                     <?php endif; ?>
                 </div>
             <?php endif; ?>
 
@@ -34,8 +38,6 @@
 
                      <input type="submit" name="submit" value="Отправить">
                  </form>
-             <?php else : ?>
-                 <div class="select-dialog">Выбирите диалог</div>
              <?php endif; ?>
         </div>
     </div>

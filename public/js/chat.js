@@ -1,198 +1,226 @@
-function Contreller(model, view) {
-    this.model = model;
-    this.view = view;
+function Controller(model, view) {
+  this.model = model;
+  this.view = view;
+
+  this.messagesInterval;
+
+  this.view.searchbox.keydown(this.handleEnterKeyOnSearchForm.bind(this));
+  this.view.searchform.submit(this.handleSubmitOnSearchForm.bind(this));
+
+  this.view.contactList.click(this, this.handleClickOnContactItem);
+  this.view.contactLinks.click(this, this.handleClickOnContact);
+
+  this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
+  this.view.messageform.submit(this, this.handleSubmitOnMessageForm);
 }
 
-Contreller.prototype.getConversation = function(withUser) {
-    var that = this;
+Controller.prototype.handleEnterKeyOnMessageForm = function(e) {
+  if (e.ctrlKey && e.keyCode == 13) {
+    $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
+  } else if (e.keyCode == 13) {
+    $(this.view.messageform).submit();
+    $(this.view.messagebox).val('');
 
-    $.getJSON('api/getmessages.php?with=' + withUser, function(results) {
-        that.view.messageForm(withUser);
-        that.view.messages(results);
-        that.moveMessagesToBottom();
-        
-        $('.messages').scrollTop($('.messages')[0].scrollHeight);
+    console.log($(this.view.messagebox).val());
+  }
+};
 
-        window.history.pushState({}, '', '/conversation.php?with=' + withUser);
-    });
-}
+Controller.prototype.handleSubmitOnMessageForm = function(e) {
+  e.preventDefault();
 
-Contreller.prototype.searchContacts = function(response, query) {
-    var contacts = $.parseJSON(response);
+  var controller = e.data;
 
-    this.view.contacts(contacts);
+  $.post(
+    'api/send.php?to=' + $(this).attr('data-send-to'),
+    {message: $(controller.view.messagebox).val()},
 
-    window.history.pushState({}, '', '/search.php?q=' + query);
-}
+    function(data) {
+    }
+  );
 
-Contreller.prototype.getContacts = function() {
-    var that = this;
-    $.getJSON('api/getcontacts.php', function(results) {
-        that.view.contacts(results);
-    });
-}
+  return false;
+};
 
-Contreller.prototype.moveMessagesToBottom = function() {
-    var space = this.model.countEmptySpaceInMessageBox();
+Controller.prototype.handleEnterKeyOnSearchForm = function(e) {
+  if (e.keyCode == 13) {
+    $(this.view.searchform).submit();
+  }
+};
 
-    this.view.addSpaceToFirstMessage(space);
+Controller.prototype.handleSubmitOnSearchForm = function(e) {
+  e.preventDefault();
 
-    $('.messages').scrollTop($('.messages')[0].scrollHeight);
-}
+  var that = this;
 
+  var q = $(that.view.searchbox).val();
+
+  $.get(
+    'api/search.php',
+    {q: q},
+
+    function(data) {
+      that.view.showContacts(data);
+
+      window.history.pushState({}, '', '/search.php?q=' + q);
+    }
+  );
+
+  return false;
+};
+
+Controller.prototype.handleClickOnContact = function(e) {
+  e.preventDefault();
+
+  var controller = e.data;
+
+  var datawith = $(this).attr('data-with');
+
+  $.get(
+    'api/getmessages.php',
+    {with: datawith},
+
+    function(data) {
+      controller.view.showMessageForm(datawith);
+      controller.view.showMessages(data);
+      controller.view.moveMessagesToBottom();
+
+      $(controller.view.messageblock).scrollTop($(controller.view.messageblock)[0].scrollHeight);
+
+      window.history.pushState({}, '', '/conversation.php?with=' + datawith);
+    }
+  );
+
+  clearInterval(controller.messagesInterval);
+
+  controller.messagesInterval = setInterval(function() {
+    $.get(
+      'api/getmessages.php',
+      {with: datawith},
+
+      function(data) {
+        controller.view.showMessages(data);
+        controller.view.moveMessagesToBottom();
+
+        $(controller.view.messageblock).scrollTop($(controller.view.messageblock)[0].scrollHeight);
+      }
+    );
+  }, 500);
+
+  return false;
+};
+
+Controller.prototype.handleClickOnContactItem = function(e) {
+  var controller = e.data;
+
+  $(controller.view.contactList).removeClass('checked');
+  $(this).addClass('checked');
+};
 
 function Model() {
 
 }
 
-Model.prototype.countEmptySpaceInMessageBox = function() {
-    var space = 0;
-
-    var messageContainerHeight = $('.messages').outerHeight();
-    var messagesHeight = 0;
-
-    $.each($('.message'), function(i, message) {
-        messagesHeight += message.offsetHeight;
-    });
-
-    if (messagesHeight < messageContainerHeight) {
-        space = messageContainerHeight - messagesHeight;
-    } else {
-        space = $('.message:first-child').css('padding-top');
-    }
-
-    return space;
-}
-
-
 function View() {
+  this.searchform = $('.search-form');
+  this.searchbox = $('input[name="q"]');
 
+  this.contactList = $('.contacts li');
+  this.contactLinks = $('.contacts a');
+  this.contactsNotFoundMessage = $('.contacts-not-found');
+
+  this.messageblock = $('.messages');
+  this.messages = $('.message');
+  this.messageform = $('.message-form');
+  this.messagebox = $('textarea[name="message"]');
+  this.selectDialogMessage = $('.select-dialog');
 }
 
-View.prototype.contacts = function(contacts) {
-    $('.contacts li').remove();
-    $('.contacts-not-found').remove();
+View.prototype.showContacts = function(contacts) {
+  $(this.contactList).remove();
+  $(this.contactsNotFoundMessage).remove();
 
-    if ($.isEmptyObject(contacts)) {
-        $('<span/>', {class: 'contacts-not-found'}).appendTo($('.contacts'));
-        $('.contacts-not-found').html("Ничего не найдено");
-    } else {
-        $.each(contacts, function(i, contact) {
-            $('<li/>').attr('data-contacat-id', contact.id).appendTo($('.contacts'));
+  if ($.isEmptyObject(contacts)) {
+    $('<span/>', {class: 'contacts-not-found'}).appendTo($('.contacts'));
+    $(this.contactsNotFoundMessage).html("Ничего не найдено");
+  } else {
+    $.each(contacts, function(i, contact) {
+      $('<li/>').attr('data-contacat-id', contact.id).appendTo($('.contacts'));
 
-            $('<a/>', {href: 'conversation.php?with=' + contact.id}).attr('data-with', contact.id).appendTo($('li[data-contacat-id=' + contact.id + ']'));
+      $('<a/>', {href: 'conversation.php?with=' + contact.id}).attr('data-with', contact.id).appendTo($('li[data-contacat-id=' + contact.id + ']'));
 
-            $('<label/>').appendTo($('a[data-with=' + contact.id + ']')).html(contact.name);
-        });
-    }
+      $('<label/>').appendTo($('a[data-with=' + contact.id + ']')).html(contact.name);
+    });
+  }
+
+  this.contactList = $('.contacts li');
 }
 
-View.prototype.messageForm = function(to) {
-    if ($('.select-dialog').length) {
-        $('.select-dialog').remove();
+View.prototype.showMessageForm = function(to) {
+  if ($(this.selectDialogMessage).length) {
+    $(this.selectDialogMessage).remove();
 
-        $('<form/>', {
-            method: 'post',
-            name: 'message-form',
-            class: 'message-form',
-            action: 'send.php?to=' + to
-        }).appendTo($('.conversation'));
+    $(this.messageform).remove();
 
-        $('.message-form').attr('data-send-to', to);
+    this.messageform = $('<form/>', {
+      method: 'post',
+      name: 'message-form',
+      class: 'message-form',
+      action: 'send.php?to=' + to
+    }).appendTo($('.conversation'));
 
-        $('<textarea/>', {name: 'message'}).appendTo($('.message-form'));
-        $('<input/>', {type: 'submit', name: 'submit', value: 'Отправить'}).appendTo($('.message-form'));
-    } else if ($('.message-form').attr('data-send-to') != to) {
-        $('.message-form').attr('action', 'send.php?to=' + to);
-        $('.message-form').attr('data-send-to', to);
-    }
+    console.log($(this.messageform));
+
+    $(this.messageform).attr('data-send-to', to);
+
+    $('<textarea/>', {name: 'message'}).appendTo($(this.messageform));
+    $('<input/>', {type: 'submit', name: 'submit', value: 'Отправить'}).appendTo($(this.messageform));
+  } else if ($('.message-form').attr('data-send-to') != to) {
+    $(this.messageform).attr('action', 'send.php?to=' + to);
+    $(this.messageform).attr('data-send-to', to);
+  }
 };
 
-View.prototype.messages = function(messages) {
-    $('.message').remove();
+View.prototype.showMessages = function(messages) {
+  this.messages.remove();
 
-    $.each(messages, function(i, message) {
-        $('<div/>', {class: 'message'}).attr('data-message-id', message.id).appendTo($('.messages'));
-        
-        $('<span/>', {class:'date'}).appendTo($('.message[data-message-id=' + message.id + ']'));
-        $('.message[data-message-id=' + message.id + '] .date').html(message.date);
+  $.each(messages, function(i, message) {
+    $('<div/>', {class: 'message'}).attr('data-message-id', message.id).appendTo($('.messages'));
 
-        $('<div/>', {class: 'message-container'}).appendTo($('.message[data-message-id=' + message.id + ']'));
+    $('<span/>', {class:'date'}).appendTo($('.message[data-message-id=' + message.id + ']'));
+    $('.message[data-message-id=' + message.id + '] .date').html(message.date);
 
-        $('<div/>', {class: 'author'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
-        $('<a/>', {href: 'user.php?id=' + message.author}).appendTo($('.message[data-message-id=' + message.id + '] .author'));
-        $('.message[data-message-id=' + message.id + '] .author a').html(message.author);
+    $('<div/>', {class: 'message-container'}).appendTo($('.message[data-message-id=' + message.id + ']'));
 
-        $('<div/>', {class: 'content'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
-        $('.message[data-message-id=' + message.id + '] .content').html(message.content);
-    });
+    $('<div/>', {class: 'author'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
+    $('<a/>', {href: 'user.php?id=' + message.author}).appendTo($('.message[data-message-id=' + message.id + '] .author'));
+    $('.message[data-message-id=' + message.id + '] .author a').html(message.author);
+
+    $('<div/>', {class: 'content'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
+    $('.message[data-message-id=' + message.id + '] .content').html(message.content);
+  });
+
+  this.messages = $('.message');
 };
 
-View.prototype.addSpaceToFirstMessage = function(space) {
-    $('.message:first-child').css({'padding-top': space});
-}
+View.prototype.moveMessagesToBottom = function() {
+  var space = 0;
 
+  var messageContainerHeight = $('.messages').outerHeight();
+  var messagesHeight = 0;
 
-$(document).ready(function() {
-    var model = new Model();
-    var view = new View();
-    var controller = new Contreller(model, view);
+  $.each(this.messages, function(i, message) {
+    messagesHeight += message.offsetHeight;
+  });
 
-    controller.moveMessagesToBottom();
+  if (messagesHeight < messageContainerHeight) {
+    space = messageContainerHeight - messagesHeight;
 
-    $('textarea[name="message"]').keydown(function (e) {
-      if (e.ctrlKey && e.keyCode == 13) {
-        $('textarea[name="message"]').val($('textarea[name="message"]').val() + "\n");
-      } else if (e.keyCode == 13) {
-        $('.message-form').submit();
-        $('textarea[name="message"]').val('');
-      }
-    });
+    this.messages.first().css('padding-top', space);
+  } 
+};
 
+var model = new Model();
+var view = new View();
+var controller = new Controller(model, view);
 
-    $('input[name="q"]').keydown(function (e) {
-      if (e.keyCode == 13) {
-        $('.search-form-form').submit();
-      }
-    });
-
-
-    $('.search-form').on('submit', function (e) {
-        var q = $('input[name=q]').val();
-
-        $.get(
-            'api/search.php',
-            {q: q},
-            function(response) {
-                controller.searchContacts(response, q);
-            }
-        );
-
-        e.preventDefault();
-    });
-
-
-    $('.contacts a').on('click', function(e) {
-        var datawith = $(this).attr('data-with');
-
-        controller.getConversation(datawith);
-
-        e.preventDefault();
-    });
-
-    $('.contacts li').on('click', function(e) {
-        $('.contacts li').removeClass('checked');
-        $(this).addClass('checked');
-    });
-    
-
-    $('.message-form').on('submit', function(e) {
-        $.post(
-            'api/send.php?to=' + $(this).attr('data-send-to'),
-            {message: $('textarea[name="message"]').val()},
-            function(response) {}
-        );
-
-       e.preventDefault();
-    });
-});
+view.moveMessagesToBottom();
