@@ -83,8 +83,7 @@ Controller.prototype.handleClickOnContact = function(e) {
       controller.view.showMessageForm(datawith);
       controller.view.showMessages(data);
       controller.view.moveMessagesToBottom();
-
-      $(controller.view.messageblock).scrollTop($(controller.view.messageblock)[0].scrollHeight);
+      controller.view.scrollDownMessages();
 
       window.history.pushState({}, '', '/conversation.php?with=' + datawith);
     }
@@ -100,8 +99,7 @@ Controller.prototype.handleClickOnContact = function(e) {
       function(data) {
         controller.view.showMessages(data);
         controller.view.moveMessagesToBottom();
-
-        $(controller.view.messageblock).scrollTop($(controller.view.messageblock)[0].scrollHeight);
+        controller.view.scrollDownMessages();
       }
     );
   }, 500);
@@ -215,8 +213,13 @@ View.prototype.moveMessagesToBottom = function() {
   } 
 };
 
+View.prototype.scrollDownMessages = function() {
+  $(this.messageblock).scrollTop($(this.messageblock)[0].scrollHeight);
+};
+
 var model = new Model();
 var view = new View();
 var controller = new Controller(model, view);
 
 view.moveMessagesToBottom();
+view.scrollDownMessages();
