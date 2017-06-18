@@ -11,7 +11,7 @@ function Controller(model, view) {
   this.view.contactLinks.click(this, this.handleClickOnContact);
 
   this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
-  this.view.messageform.submit(this, this.handleSubmitOnMessageForm);
+  this.view.messageform.submit(this.handleSubmitOnMessageForm.bind(this));
 }
 
 Controller.prototype.handleEnterKeyOnMessageForm = function(e) {
@@ -26,13 +26,11 @@ Controller.prototype.handleEnterKeyOnMessageForm = function(e) {
 Controller.prototype.handleSubmitOnMessageForm = function(e) {
   e.preventDefault();
 
-  var controller = e.data;
-
-  var to = $(this).attr('data-send-to');
+  var to = $(this.view.messageform).attr('data-send-to');
 
   $.post(
     'api/send.php?to=' + to,
-    {message: $(controller.view.messagebox).val()},
+    {message: $(this.view.messagebox).val()},
 
     function(data) {
     }
