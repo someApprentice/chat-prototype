@@ -105,8 +105,6 @@ Controller.prototype.handleClickOnContact = function(e) {
       }
     );
   }, 500);
-
-  return false;
 };
 
 Controller.prototype.handleClickOnContactItem = function(e) {
@@ -167,8 +165,6 @@ View.prototype.showMessageForm = function(to) {
       class: 'message-form',
       action: 'send.php?to=' + to
     }).appendTo($('.conversation'));
-
-    console.log($(this.messageform));
 
     $(this.messageform).attr('data-send-to', to);
 
