@@ -7,7 +7,7 @@ function Controller(model, view) {
   this.view.searchbox.keydown(this.handleEnterKeyOnSearchForm.bind(this));
   this.view.searchform.submit(this.handleSubmitOnSearchForm.bind(this));
 
-  this.view.contactList.click(this, this.handleClickOnContactItem);
+  this.view.contactList.click(this.view, this.view.turnCheckedClass);
   this.view.contactLinks.click(this, this.handleClickOnContact);
 
   this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
@@ -20,8 +20,6 @@ Controller.prototype.handleEnterKeyOnMessageForm = function(e) {
   } else if (e.keyCode == 13) {
     $(this.view.messageform).submit();
     $(this.view.messagebox).val('');
-
-    console.log($(this.view.messagebox).val());
   }
 };
 
@@ -30,8 +28,10 @@ Controller.prototype.handleSubmitOnMessageForm = function(e) {
 
   var controller = e.data;
 
+  var to = $(this).attr('data-send-to');
+
   $.post(
-    'api/send.php?to=' + $(this).attr('data-send-to'),
+    'api/send.php?to=' + to,
     {message: $(controller.view.messagebox).val()},
 
     function(data) {
@@ -89,27 +89,26 @@ Controller.prototype.handleClickOnContact = function(e) {
     }
   );
 
-  clearInterval(controller.messagesInterval);
+  controller.refreshMessages(datawith);
+};
 
-  controller.messagesInterval = setInterval(function() {
+Controller.prototype.refreshMessages = function(datawith) {
+  var that = this;
+
+  clearInterval(that.messagesInterval);
+
+  that.messagesInterval = setInterval(function() {
     $.get(
       'api/getmessages.php',
       {with: datawith},
 
       function(data) {
-        controller.view.showMessages(data);
-        controller.view.moveMessagesToBottom();
-        controller.view.scrollDownMessages();
+        that.view.showMessages(data);
+        that.view.moveMessagesToBottom();
+        that.view.scrollDownMessages();
       }
     );
   }, 500);
-};
-
-Controller.prototype.handleClickOnContactItem = function(e) {
-  var controller = e.data;
-
-  $(controller.view.contactList).removeClass('checked');
-  $(this).addClass('checked');
 };
 
 function Model() {
@@ -130,6 +129,13 @@ function View() {
   this.messagebox = $('textarea[name="message"]');
   this.selectDialogMessage = $('.select-dialog');
 }
+
+View.prototype.turnCheckedClass = function(e) {
+  var view = e.data;
+
+  $(view.contactList).removeClass('checked');
+  $(this).addClass('checked');
+};
 
 View.prototype.showContacts = function(contacts) {
   $(this.contactList).remove();
@@ -223,3 +229,9 @@ var controller = new Controller(model, view);
 
 view.moveMessagesToBottom();
 view.scrollDownMessages();
+
+if ($(view.messageform).length != 0) {
+  var datawith  = $(view.messageform).attr('data-send-to');
+
+  controller.refreshMessages(datawith);
+}
