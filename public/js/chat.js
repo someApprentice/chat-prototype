@@ -1,51 +1,38 @@
-function Controller(model, view) {
-  this.model = model;
-  this.view = view;
+function Controller(contacts, conversation) {
+  this.contacts = contacts;
+  this.conversation = conversation;
 
-  this.messagesInterval;
+  this.contacts.view.contactLinks.click(this, this.handleConversation);
+}
+
+Controller.prototype.handleConversation = function(e) {
+  var controller = e.data;
+
+  var datawith = $(this).attr('data-with');
+
+  controller.conversation.getMessages(datawith);
+  controller.conversation.refreshMessages(datawith);
+}
+
+
+function Contacts(modelView, view) {
+  this.modelView  = modelView;
+  this.view = view;
 
   this.view.searchbox.keydown(this.handleEnterKeyOnSearchForm.bind(this));
   this.view.searchform.submit(this.handleSubmitOnSearchForm.bind(this));
 
   this.view.contactList.click(this.view, this.view.turnCheckedClass);
-  this.view.contactLinks.click(this, this.handleClickOnContact);
-
-  this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
-  this.view.messageform.submit(this.handleSubmitOnMessageForm.bind(this));
+  this.view.contactLinks.click(this.handleClickOnContact);
 }
 
-Controller.prototype.handleEnterKeyOnMessageForm = function(e) {
-  if (e.ctrlKey && e.keyCode == 13) {
-    $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
-  } else if (e.keyCode == 13) {
-    $(this.view.messageform).submit();
-    $(this.view.messagebox).val('');
-  }
-};
-
-Controller.prototype.handleSubmitOnMessageForm = function(e) {
-  e.preventDefault();
-
-  var to = $(this.view.messageform).attr('data-send-to');
-
-  $.post(
-    'api/send.php?to=' + to,
-    {message: $(this.view.messagebox).val()},
-
-    function(data) {
-    }
-  );
-
-  return false;
-};
-
-Controller.prototype.handleEnterKeyOnSearchForm = function(e) {
+Contacts.prototype.handleEnterKeyOnSearchForm = function(e) {
   if (e.keyCode == 13) {
     $(this.view.searchform).submit();
   }
 };
 
-Controller.prototype.handleSubmitOnSearchForm = function(e) {
+Contacts.prototype.handleSubmitOnSearchForm = function(e) {
   e.preventDefault();
 
   var that = this;
@@ -66,76 +53,35 @@ Controller.prototype.handleSubmitOnSearchForm = function(e) {
   return false;
 };
 
-Controller.prototype.handleClickOnContact = function(e) {
+Contacts.prototype.handleClickOnContact = function(e) {
   e.preventDefault();
-
-  var controller = e.data;
 
   var datawith = $(this).attr('data-with');
 
-  $.get(
-    'api/getmessages.php',
-    {with: datawith},
-
-    function(data) {
-      controller.view.showMessageForm(datawith);
-      controller.view.showMessages(data);
-      controller.view.moveMessagesToBottom();
-      controller.view.scrollDownMessages();
-
-      window.history.pushState({}, '', '/conversation.php?with=' + datawith);
-    }
-  );
-
-  controller.refreshMessages(datawith);
+  window.history.pushState({}, '', '/conversation.php?with=' + datawith);
 };
 
-Controller.prototype.refreshMessages = function(datawith) {
-  var that = this;
-
-  clearInterval(that.messagesInterval);
-
-  that.messagesInterval = setInterval(function() {
-    $.get(
-      'api/getmessages.php',
-      {with: datawith},
-
-      function(data) {
-        that.view.showMessages(data);
-        that.view.moveMessagesToBottom();
-        that.view.scrollDownMessages();
-      }
-    );
-  }, 500);
-};
-
-function Model() {
+function ContactsModelView() {
 
 }
 
-function View() {
+function ContactsView() {
   this.searchform = $('.search-form');
   this.searchbox = $('input[name="q"]');
 
   this.contactList = $('.contacts li');
   this.contactLinks = $('.contacts a');
   this.contactsNotFoundMessage = $('.contacts-not-found');
-
-  this.messageblock = $('.messages');
-  this.messages = $('.message');
-  this.messageform = $('.message-form');
-  this.messagebox = $('textarea[name="message"]');
-  this.selectDialogMessage = $('.select-dialog');
 }
 
-View.prototype.turnCheckedClass = function(e) {
+ContactsView.prototype.turnCheckedClass = function(e) {
   var view = e.data;
 
   $(view.contactList).removeClass('checked');
   $(this).addClass('checked');
 };
 
-View.prototype.showContacts = function(contacts) {
+ContactsView.prototype.showContacts = function(contacts) {
   $(this.contactList).remove();
   $(this.contactsNotFoundMessage).remove();
 
@@ -155,7 +101,90 @@ View.prototype.showContacts = function(contacts) {
   this.contactList = $('.contacts li');
 }
 
-View.prototype.showMessageForm = function(to) {
+
+function Conversation(modelView, view) {
+  this.modelView = modelView;
+  this.view = view;
+
+  this.messagesInterval;
+
+  this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
+  this.view.messageform.submit(this.handleSubmitOnMessageForm.bind(this));
+}
+
+Conversation.prototype.handleEnterKeyOnMessageForm = function(e) {
+  if (e.ctrlKey && e.keyCode == 13) {
+    $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
+  } else if (e.keyCode == 13) {
+    $(this.view.messageform).submit();
+    $(this.view.messagebox).val('');
+  }
+};
+
+Conversation.prototype.handleSubmitOnMessageForm = function(e) {
+  e.preventDefault();
+
+  var to = $(this.view.messageform).attr('data-send-to');
+
+  $.post(
+    'api/send.php?to=' + to,
+    {message: $(this.view.messagebox).val()},
+
+    function(data) {
+    }
+  );
+
+  return false;
+};
+
+Conversation.prototype.getMessages = function(datawith) {
+  var that = this;
+
+  $.get(
+    'api/getmessages.php',
+    {with: datawith},
+
+    function(data) {
+      that.view.showMessageForm(datawith);
+      that.view.showMessages(data);
+      that.view.moveMessagesToBottom();
+      that.view.scrollDownMessages();
+    }
+  );
+};
+
+Conversation.prototype.refreshMessages = function(datawith) {
+  var that = this;
+
+  clearInterval(that.messagesInterval);
+
+  that.messagesInterval = setInterval(function() {
+    $.get(
+      'api/getmessages.php',
+      {with: datawith},
+
+      function(data) {
+        that.view.showMessages(data);
+        that.view.moveMessagesToBottom();
+        that.view.scrollDownMessages();
+      }
+    );
+  }, 500);
+};
+
+function ConversationModelView() {
+
+}
+
+function ConversationView() {
+  this.messageblock = $('.messages');
+  this.messages = $('.message');
+  this.messageform = $('.message-form');
+  this.messagebox = $('textarea[name="message"]');
+  this.selectDialogMessage = $('.select-dialog');
+}
+
+ConversationView.prototype.showMessageForm = function(to) {
   if ($(this.selectDialogMessage).length) {
     $(this.selectDialogMessage).remove();
 
@@ -178,7 +207,7 @@ View.prototype.showMessageForm = function(to) {
   }
 };
 
-View.prototype.showMessages = function(messages) {
+ConversationView.prototype.showMessages = function(messages) {
   this.messages.remove();
 
   $.each(messages, function(i, message) {
@@ -200,7 +229,7 @@ View.prototype.showMessages = function(messages) {
   this.messages = $('.message');
 };
 
-View.prototype.moveMessagesToBottom = function() {
+ConversationView.prototype.moveMessagesToBottom = function() {
   var space = 0;
 
   var messageContainerHeight = $('.messages').outerHeight();
@@ -217,19 +246,28 @@ View.prototype.moveMessagesToBottom = function() {
   } 
 };
 
-View.prototype.scrollDownMessages = function() {
+ConversationView.prototype.scrollDownMessages = function() {
   $(this.messageblock).scrollTop($(this.messageblock)[0].scrollHeight);
 };
 
-var model = new Model();
-var view = new View();
-var controller = new Controller(model, view);
 
-view.moveMessagesToBottom();
-view.scrollDownMessages();
+$(document).ready(function() {
+  var contactsModelView = new ContactsModelView();
+  var contactsView = new ContactsView();
+  var contacts = new Contacts(contactsModelView, contactsView);
 
-if ($(view.messageform).length != 0) {
-  var datawith  = $(view.messageform).attr('data-send-to');
+  var conversationModelView = new ConversationModelView();
+  var conversationView = new ConversationView();
+  var conversation = new Conversation(conversationModelView, conversationView);
 
-  controller.refreshMessages(datawith);
-}
+  var controller = new Controller(contacts, conversation);
+
+  conversationView.moveMessagesToBottom();
+  conversationView.scrollDownMessages();
+
+  if ($(conversationView.messageform).length != 0) {
+    var datawith  = $(conversationView.messageform).attr('data-send-to');
+
+    conversation.refreshMessages(datawith);
+  }  
+});
