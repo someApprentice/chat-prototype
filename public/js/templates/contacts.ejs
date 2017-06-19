@@ -1,0 +1,5 @@
+<ul class="contacts">
+    <% for(var key in contacts) { %>
+        <li><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>
+    <% } %>
+</ul>

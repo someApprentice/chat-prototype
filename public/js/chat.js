@@ -69,6 +69,7 @@ function ContactsView() {
   this.searchform = $('.search-form');
   this.searchbox = $('input[name="q"]');
 
+  this.contacts = $('.contacts');
   this.contactList = $('.contacts li');
   this.contactLinks = $('.contacts a');
   this.contactsNotFoundMessage = $('.contacts-not-found');
@@ -86,19 +87,17 @@ ContactsView.prototype.showContacts = function(contacts) {
   $(this.contactsNotFoundMessage).remove();
 
   if ($.isEmptyObject(contacts)) {
-    $('<span/>', {class: 'contacts-not-found'}).appendTo($('.contacts'));
-    $(this.contactsNotFoundMessage).html("Ничего не найдено");
+    var html = new EJS({url: 'js/templates/contacts-not-found.ejs'}).render(data);
+    $(this.contacts).html(html);
   } else {
-    $.each(contacts, function(i, contact) {
-      $('<li/>').attr('data-contacat-id', contact.id).appendTo($('.contacts'));
+    var data = {contacts: contacts};
 
-      $('<a/>', {href: 'conversation.php?with=' + contact.id}).attr('data-with', contact.id).appendTo($('li[data-contacat-id=' + contact.id + ']'));
+    var html = new EJS({url: 'js/templates/contacts.ejs'}).render(data);
 
-      $('<label/>').appendTo($('a[data-with=' + contact.id + ']')).html(contact.name);
-    });
+    $(this.contacts).html(html);
+
+    this.contactList = $('.contacts li');
   }
-
-  this.contactList = $('.contacts li');
 }
 
 
@@ -177,6 +176,7 @@ function ConversationModelView() {
 }
 
 function ConversationView() {
+  this.conversation = $('.conversation');
   this.messageblock = $('.messages');
   this.messages = $('.message');
   this.messageform = $('.message-form');
@@ -190,18 +190,14 @@ ConversationView.prototype.showMessageForm = function(to) {
 
     $(this.messageform).remove();
 
-    this.messageform = $('<form/>', {
-      method: 'post',
-      name: 'message-form',
-      class: 'message-form',
-      action: 'send.php?to=' + to
-    }).appendTo($('.conversation'));
+    var data = {to: to};
 
-    $(this.messageform).attr('data-send-to', to);
+    var html = new EJS({url: 'js/templates/messageform.ejs'}).render(data);
 
-    $('<textarea/>', {name: 'message'}).appendTo($(this.messageform));
-    $('<input/>', {type: 'submit', name: 'submit', value: 'Отправить'}).appendTo($(this.messageform));
-  } else if ($('.message-form').attr('data-send-to') != to) {
+    $(this.conversation).append(html);
+
+    this.messageform = $('.message-form');
+  } else if ($(this.messageform).attr('data-send-to') != to) {
     $(this.messageform).attr('action', 'send.php?to=' + to);
     $(this.messageform).attr('data-send-to', to);
   }
@@ -210,21 +206,11 @@ ConversationView.prototype.showMessageForm = function(to) {
 ConversationView.prototype.showMessages = function(messages) {
   this.messages.remove();
 
-  $.each(messages, function(i, message) {
-    $('<div/>', {class: 'message'}).attr('data-message-id', message.id).appendTo($('.messages'));
+  var data = {messages: messages};
 
-    $('<span/>', {class:'date'}).appendTo($('.message[data-message-id=' + message.id + ']'));
-    $('.message[data-message-id=' + message.id + '] .date').html(message.date);
+  var html = new EJS({url: 'js/templates/messages.ejs'}).render(data);
 
-    $('<div/>', {class: 'message-container'}).appendTo($('.message[data-message-id=' + message.id + ']'));
-
-    $('<div/>', {class: 'author'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
-    $('<a/>', {href: 'user.php?id=' + message.author}).appendTo($('.message[data-message-id=' + message.id + '] .author'));
-    $('.message[data-message-id=' + message.id + '] .author a').html(message.author);
-
-    $('<div/>', {class: 'content'}).appendTo($('.message[data-message-id=' + message.id + '] .message-container'));
-    $('.message[data-message-id=' + message.id + '] .content').html(message.content);
-  });
+  $(this.messageblock).html(html);
 
   this.messages = $('.message');
 };
@@ -269,5 +255,5 @@ $(document).ready(function() {
     var datawith  = $(conversationView.messageform).attr('data-send-to');
 
     conversation.refreshMessages(datawith);
-  }  
+  }
 });

@@ -35,13 +35,11 @@ header {
     clear: both;
 }
 
-.contacts {
+.contact-box {
     float: left;
-    margin: 0;
     border-right: solid 1px grey;
     width: 25%;
     height: 100%;
-    padding: 0;
 }
 
 .search-form {
@@ -51,8 +49,12 @@ header {
 
 .search-form input[name="q"] {
     width: 150px;
-} 
+}
 
+.contacts {
+    margin: 0;
+    padding: 0;
+}
 
 .contacts li {
     list-style-type: none;
