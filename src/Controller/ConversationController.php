@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Controller\AuthController;
 use App\Model\Database;
+use App\Model\Validator;
 use App\Model\Entity\Message;
 use App\View\View;
 
@@ -63,27 +64,33 @@ class ConversationController extends Controller
 
                 if ($this->database->getUserByColumn('id', $to)) {
                     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                        $post['message'] = (isset($_POST['message']) and is_scalar($_POST['message'])) ? $_POST['message'] : '';
+                        if (Validator::validateToken($_POST['token'])) {
+                            $post['message'] = (isset($_POST['message']) and is_scalar($_POST['message'])) ? $_POST['message'] : '';
 
-                        $post['message'] = trim($post['message']);
+                            $post['message'] = trim($post['message']);
 
-                        if (!empty($post['message'])) {
-                            $message = new Message();
-                            $message->setAuthor($logged->getId());
-                            $message->setReceiver($to);
-                            $message->setContent($post['message']);
+                            if (!empty($post['message'])) {
+                                $message = new Message();
+                                $message->setAuthor($logged->getId());
+                                $message->setReceiver($to);
+                                $message->setContent($post['message']);
 
-                            $this->database->addMessage($message);
+                                $this->database->addMessage($message);
 
-                            if (!$this->database->getUserContact($logged->getId(), $to)) {
-                                $this->database->addUserContact($logged->getId(), $to);
+                                if (!$this->database->getUserContact($logged->getId(), $to)) {
+                                    $this->database->addUserContact($logged->getId(), $to);
+                                }
+
+                                if (!$apiMode) {
+                                    $this->redirect("/conversation.php?with={$to}");
+
+                                    die();
+                                }
                             }
+                        } else {    
+                            $this->redirect();
 
-                            if (!$apiMode) {
-                                $this->redirect("/conversation.php?with={$to}");
-
-                                die();
-                            }
+                            die();   
                         }
                     }
                 } else {

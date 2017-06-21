@@ -130,7 +130,10 @@ Conversation.prototype.handleSubmitOnMessageForm = function(e) {
 
   $.post(
     'api/send.php?to=' + to,
-    {message: $(this.view.messagebox).val()},
+    {
+      message: $(this.view.messagebox).val(),
+      token: $(this.view.token).val()
+    },
 
     function(data) {
     }
@@ -182,8 +185,11 @@ function ConversationView() {
   this.conversation = $('.conversation');
   this.messageblock = $('.messages');
   this.messages = $('.message');
+
   this.messageform = $('.message-form');
   this.messagebox = $('textarea[name="message"]');
+  this.token = $('.message-form input[name="token"]');
+
   this.selectDialogMessage = $('.select-dialog');
 }
 

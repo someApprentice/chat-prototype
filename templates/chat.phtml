@@ -37,9 +37,11 @@
 
             <?php if (isset($with)) : ?>
                  <form method="post" name="message-form" class="message-form" data-send-to="<?= isset($with) ? $with : '' ?>"" action="send.php?to=<?= isset($with) ? $with : '' ?>">
-                     <textarea name="message"></textarea>
+                    <textarea name="message"></textarea>
 
-                     <input type="submit" name="submit" value="Отправить">
+                    <input type="hidden" name="token" value="<?= $_COOKIE['token'] ?>">
+
+                    <input type="submit" name="submit" value="Отправить">
                  </form>
              <?php endif; ?>
         </div>
