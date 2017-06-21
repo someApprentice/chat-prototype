@@ -87,15 +87,23 @@ ContactsView.prototype.showContacts = function(contacts) {
   $(this.contactsNotFoundMessage).remove();
 
   if ($.isEmptyObject(contacts)) {
-    var template = Handlebars.compile($('#contacts-not-found').html());
-    var html = template(data);
+    var template = '<span class="contacts-not-found">Ничего не найдено</span>';
+  
+    var html = ejs.render(template, data);
 
     $(this.contacts).html(html);
   } else {
     var data = {contacts: contacts};
 
-    var template = Handlebars.compile($('#contacts').html());
-    var html = template(data);
+    var template = 
+      '<ul class="contacts">' +
+          '<% for(var key in contacts) { %>' +
+              '<li><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>' +
+          '<% } %>' +
+      '</ul>'
+    ;
+      
+    var html = ejs.render(template, data);
 
     $(this.contacts).html(html);
 
@@ -132,7 +140,7 @@ Conversation.prototype.handleSubmitOnMessageForm = function(e) {
     'api/send.php?to=' + to,
     {
       message: $(this.view.messagebox).val(),
-      token: $(this.view.token).val()
+      token: this.view.token
     },
 
     function(data) {
@@ -188,7 +196,7 @@ function ConversationView() {
 
   this.messageform = $('.message-form');
   this.messagebox = $('textarea[name="message"]');
-  this.token = $('.message-form input[name="token"]');
+  this.token = Cookies.get('token');
 
   this.selectDialogMessage = $('.select-dialog');
 }
@@ -199,10 +207,20 @@ ConversationView.prototype.showMessageForm = function(to) {
 
     $(this.messageform).remove();
 
-    var data = {to: to};
+    var data = {
+      to: to,
+      token: this.token
+    };
 
-    var template = Handlebars.compile($('#messagefrom').html());
-    var html = template(data);
+    var template = 
+      '<form method="post" name="message-form" class="message-form" data-send-to="<%= to %>"" action="send.php?to=<%= to %>">' +
+          '<textarea name="message"></textarea>' +
+          '<input type="hidden" name="token" value="<%= token %>">' +
+          '<input type="submit" name="submit" value="Отправить">' +
+      '</form>'
+    ;
+      
+    var html = ejs.render(template, data);
 
     $(this.conversation).append(html);
 
@@ -218,8 +236,22 @@ ConversationView.prototype.showMessages = function(messages) {
 
   var data = {messages: messages};
 
-  var template = Handlebars.compile($('#messages').html());
-  var html = template(data);
+  // var template = Handlebars.compile($('#messages').html());
+  // var html = template(data);
+
+  var template = 
+    '<% for(var key in messages) { %>' +
+        '<div data-message-id="<%= messages[key].id %>" class="message">' +
+            '<span class="date"><%= messages[key].date %></span>' +
+            '<div class="message-container">' +
+                '<div class="author"><a href="user.php%id=<%= messages[key].id %>"><%= messages[key].author %></a></div>' +
+                '<div class="content"><%= messages[key].content %></div>' +
+            '</div>' +
+        '</div>' +
+    '<% } %>'
+  ;
+    
+  var html = ejs.render(template, data);
 
   $(this.messageblock).html(html);
 

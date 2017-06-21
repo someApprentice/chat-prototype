@@ -1,39 +1,6 @@
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-
-        <script type="text/javascript" src="js/handlebars.min-latest.js"></script>
-        
-        <script id="messages" type="text/x-handlebars-template">
-            {{#each messages}}
-                <div data-message-id="{{ id }}" class="message">
-                    <span class="date">{{ date }}</span>
-                    <div class="message-container">
-                        <div class="author"><a href="user.php?id={{ authorID }}">{{ author }}</a></div>
-                        <div class="content">{{ content }}</div>
-                    </div>
-                </div>
-            {{/each}}
-        </script>
-
-        <script id="messageform" type="text/x-handlebars-template">
-            <form method="post" name="message-form" class="message-form" data-send-to="{{ to }}"" action="send.php?to={{ to }}">
-                <textarea name="message"></textarea>
-
-                <input type="submit" name="submit" value="Отправить">
-            </form>
-        </script>
-
-        <script id="contacts-not-found" type="text/x-handlebars-template">
-            <span class="contacts-not-found">Ничего не найдено</span>
-        </script>
-        
-        <script id="contacts" type="text/x-handlebars-template">
-            <ul class="contacts">
-                {{#each contacts}}
-                    <li><a data-with="{{ id }}" href="conversation.php?with={{ id }}"><label>{{ name }}</label></a></li>
-                {{/each}}
-            </ul>
-        </script>
-
+        <script type="text/javascript" src="js/js.cookie.js"></script>
+        <script type="text/javascript" src="js/ejs.min.js"></script>
         <script type="text/javascript" src="js/chat.js"></script>
     </body>
 </html>

@@ -100,9 +100,9 @@ class AuthController extends Controller
 
                         var_dump($user->getId());
 
-                        setcookie('id', $user->getId(), time() + $expires, '/', null, null, true);
-                        setcookie('hash', $user->getHash(), time() + $expires, '/', null, null, true);
-                        setcookie('token', Helper::generateToken(), time() + $expires, '/', null, null, true);
+                        setcookie('id', $user->getId(), time() + $expires, '/', null, null);
+                        setcookie('hash', $user->getHash(), time() + $expires, '/', null, null);
+                        setcookie('token', Helper::generateToken(), time() + $expires, '/', null, null);
 
                         $this->redirect();
 
