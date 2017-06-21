@@ -27,7 +27,7 @@ class IndexController extends Controller
         if ($logged) {
             $this->conversationController->run();
         } else {
-            $this->view->login();
+            $this->view->renderLoginPage();
         }
     }
 }

@@ -46,7 +46,7 @@ class ConversationController extends Controller
                 }
             }
 
-            $this->view->conversation(compact('logged', 'contacts', 'messages', 'with'));
+            $this->view->renderConversationPage(compact('logged', 'contacts', 'messages', 'with'));
         } else {
             $this->redirect();
 

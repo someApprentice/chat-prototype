@@ -4,21 +4,21 @@ namespace App\View;
 class View
 {
 
-    public function registration(array $varibles = array())
+    public function renderRegistrationPage(array $varibles = array())
     {
         $this->render('/templates/head.html');
         $this->render('/templates/registration.phtml', $varibles);
         $this->render('/templates/foot.html');
     }
 
-    public function login(array $varibles = array())
+    public function renderLoginPage(array $varibles = array())
     {
         $this->render('/templates/head.html');
         $this->render('/templates/login.phtml', $varibles);
         $this->render('/templates/foot.html');
     }
 
-    public function conversation(array $varibles = array())
+    public function renderConversationPage(array $varibles = array())
     {
         extract($varibles);
 

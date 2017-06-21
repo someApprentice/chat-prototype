@@ -44,7 +44,7 @@ class SearchController extends Controller
                 } else {
                     $contacts = $results;
 
-                    $this->view->conversation(compact('logged', 'query', 'contacts'));
+                    $this->view->renderConversationPage(compact('logged', 'query', 'contacts'));
                 }
             } else {
                 $this->redirect();

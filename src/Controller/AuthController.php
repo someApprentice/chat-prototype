@@ -68,7 +68,7 @@ class AuthController extends Controller
             }
         }
 
-        $this->view->registration(compact('post', 'errors'));
+        $this->view->renderRegistrationPage(compact('post', 'errors'));
     }
 
     public function login()
@@ -116,7 +116,7 @@ class AuthController extends Controller
             }
         }
 
-        $this->view->login(compact('post', 'errors'));
+        $this->view->renderLoginPage(compact('post', 'errors'));
     }
 
     public function logout() {
