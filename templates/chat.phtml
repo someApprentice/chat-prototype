@@ -25,7 +25,7 @@
                                 <span class="date"><?= $message->getDate() ?></span>
                                 <div class="message-container">
                                     <div class="author"><a href="user.php?id=<?= $message->getAuthor()->getId() ?>"><?= htmlspecialchars($message->getAuthor()->getName()) ?></a></div>
-                                    <div class="content"><?= htmlspecialchars($message->getContent()) ?></div>
+                                    <div class="content"><?= nl2br(htmlspecialchars($message->getContent())) ?></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>

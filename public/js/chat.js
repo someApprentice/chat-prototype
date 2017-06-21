@@ -40,7 +40,7 @@ Contacts.prototype.handleSubmitOnSearchForm = function(e) {
   var q = $(that.view.searchbox).val();
 
   $.get(
-    'api/v1/v1/search.php',
+    'api/v1/search.php',
     {q: q},
 
     function(data) {
@@ -188,7 +188,7 @@ Conversation.prototype.refreshMessages = function(datawith) {
         that.view.scrollDownMessages();
       }
     );
-  }, 500);
+  }, 300);
 };
 
 function ConversationModelView() {
@@ -242,15 +242,12 @@ ConversationView.prototype.showMessages = function(messages) {
 
   var data = {messages: messages};
 
-  // var template = Handlebars.compile($('#messages').html());
-  // var html = template(data);
-
   var template = 
     '<% for(var key in messages) { %>' +
         '<div data-message-id="<%= messages[key].id %>" class="message">' +
             '<span class="date"><%= messages[key].date %></span>' +
             '<div class="message-container">' +
-                '<div class="author"><a href="user.php%id=<%= messages[key].id %>"><%= messages[key].author %></a></div>' +
+                '<div class="author"><a href="user.php?id=<%= messages[key].authorID %>"><%= messages[key].author %></a></div>' +
                 '<div class="content"><%= messages[key].content %></div>' +
             '</div>' +
         '</div>' +
@@ -260,6 +257,12 @@ ConversationView.prototype.showMessages = function(messages) {
   var html = ejs.render(template, data);
 
   $(this.messageblock).html(html);
+
+  $(this.messageblock.children('.content')).each(function() {
+    var text = $(this).text().replace('/\r\n/g', "<br>");
+
+    $(this).text(text);
+  });
 
   this.messages = $('.message');
 };
