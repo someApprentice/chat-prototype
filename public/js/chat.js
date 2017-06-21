@@ -130,6 +130,8 @@ Conversation.prototype.handleEnterKeyOnMessageForm = function(e) {
   if (e.ctrlKey && e.keyCode == 13) {
     $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
   } else if (e.keyCode == 13) {
+    e.preventDefault();
+
     $(this.view.messageform).submit();
     $(this.view.messagebox).val('');
   }
