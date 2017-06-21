@@ -23,7 +23,7 @@ class Validator
 
     public static function validatePassword($password)
     {
-        if (preg_match('/^(.){6,20}$/', $password)) {
+        if (preg_match('/^(.){6,128}$/', $password)) {
             return true;
         }
 
@@ -55,7 +55,7 @@ class Validator
         }
 
         if (!Validator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
-            $errors['retryPassword'] = "Пароль должен быть длиньше 6 символов и короче 20";
+            $errors['retryPassword'] = "Пароль должен быть длиньше 6 символов и короче 128";
         }
 
         return $errors;
@@ -69,7 +69,7 @@ class Validator
         }
 
         if (!Validator::validatePassword($post['password'])) {
-            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
+            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 128";
         }
 
         return $errors;

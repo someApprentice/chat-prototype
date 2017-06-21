@@ -18,14 +18,14 @@
 
             <label>
                 Пароль
-                <input type="password" name="password" pattern="(.){6,20}" required>
+                <input type="password" name="password" pattern="(.){6,128}" required>
                 <span class="form-error">
                     <?= (isset($errors) and array_key_exists('password', $errors) ? $errors['password'] : '' ) ?>
                 </span>
             </label>
             <label>
                 Повторите пароль
-                <input type="password" name="retryPassword" pattern="(.){6,20}" required>
+                <input type="password" name="retryPassword" pattern="(.){6,128}" required>
                 <span class="form-error">
                     <?= (isset($errors) and array_key_exists('retryPassword', $errors) ? $errors['retryPassword'] : '' ) ?>
                 </span>
