@@ -40,15 +40,19 @@ Contacts.prototype.handleSubmitOnSearchForm = function(e) {
   var q = $(that.view.searchbox).val();
 
   $.get(
-    'api/search.php',
+    'api/v1/v1/search.php',
     {q: q},
 
     function(data) {
       that.view.showContacts(data);
 
+      console.log(data);
+
       window.history.pushState({}, '', '/search.php?q=' + q);
     }
-  );
+  ).fail(function() {
+    console.log("FAIL");
+  });
 
   return false;
 };
@@ -137,7 +141,7 @@ Conversation.prototype.handleSubmitOnMessageForm = function(e) {
   var to = $(this.view.messageform).attr('data-send-to');
 
   $.post(
-    'api/send.php?to=' + to,
+    'api/v1/send.php?to=' + to,
     {
       message: $(this.view.messagebox).val(),
       token: this.view.token
@@ -154,7 +158,7 @@ Conversation.prototype.getMessages = function(datawith) {
   var that = this;
 
   $.get(
-    'api/getmessages.php',
+    'api/v1/getmessages.php',
     {with: datawith},
 
     function(data) {
@@ -173,7 +177,7 @@ Conversation.prototype.refreshMessages = function(datawith) {
 
   that.messagesInterval = setInterval(function() {
     $.get(
-      'api/getmessages.php',
+      'api/v1/getmessages.php',
       {with: datawith},
 
       function(data) {
