@@ -3,19 +3,6 @@ require_once __DIR__ . '/../../src/init.php';
 
 header("Content-type:application/json");
 
-$logged = $container['AuthController']->getLogged();
+$apiMode = true;
 
-if ($logged) {
-    $contactsObject = $container['Database']->getUserContacts($logged->getId());
-
-    $contacts = array();
-
-    foreach ($contactsObject as $contact) {
-        $contacts[] = array(
-            'id' => $contact->getId(),
-            'name' => $contact->getName()
-        );
-    }
-
-    echo json_encode($contacts, \JSON_FORCE_OBJECT);
-}
+$container['ConversationController']->getContacts($apiMode);

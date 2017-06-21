@@ -27,31 +27,15 @@ class ConversationController extends Controller
     {
         $logged = $this->authController->getLogged();
 
-        $contacts = array();
-
-        $messages = array();
-
-        if ($logged) {
-            $contacts = $this->database->getUserContacts($logged->getId());
-
-            if (isset($_GET['with']) and is_numeric($_GET['with'])) {
-                $with = $_GET['with'];
-
-                if ($this->database->getUserByColumn('id', $with)) {
-                    $messages = $this->database->getMessages($logged->getId(), $with);
-                } else {
-                    $this->redirect();
-
-                    die();
-                }
-            }
-
-            $this->view->renderConversationPage(compact('logged', 'contacts', 'messages', 'with'));
-        } else {
-            $this->redirect();
-
-            die();
+        if (isset($_GET['with']) and is_numeric($_GET['with'])) {
+            $with = $_GET['with'];
         }
+
+        $contacts = $this->getContacts();
+
+        $messages = $this->getMessages();
+
+        $this->view->renderConversationPage(compact('logged', 'contacts', 'messages', 'with'));
     }
 
     public function send($apiMode = false)
@@ -87,10 +71,10 @@ class ConversationController extends Controller
                                     die();
                                 }
                             }
-                        } else {    
+                        } else {
                             $this->redirect();
 
-                            die();   
+                            die();
                         }
                     }
                 } else {
@@ -103,6 +87,97 @@ class ConversationController extends Controller
             $this->redirect();
 
             die();
+        }
+    }
+
+    public function getContacts($apiMode = false)
+    {
+        $logged = $this->authController->getLogged();
+
+        $contacts = array();
+
+        if ($logged) {
+            $contacts = $this->database->getUserContacts($logged->getId());
+
+            if ($apiMode) {
+                $c = array();
+
+                foreach ($contacts as $contact) {
+                    $c[] = array(
+                        'id' => $contact->getId(),
+                        'name' => $contact->getName()
+                    );
+                }
+
+                echo json_encode($c, \JSON_FORCE_OBJECT);
+            } else {
+                return $contacts;
+            }
+        } else {
+            if ($apiMode) {
+                $e = array();
+
+                $e['error'] = "You are not logged.";
+
+                echo json_encode($c, \JSON_FORCE_OBJECT);
+            } else {
+                throw new \Exception("You are not logged."); 
+            }
+        }
+    }
+
+    public function getMessages($apiMode = false) {
+        $logged = $this->authController->getLogged();
+
+        $messages = array();
+
+        if ($logged) {
+            if (isset($_GET['with']) and is_numeric($_GET['with'])) {
+                $with = $_GET['with'];
+
+                if ($this->database->getUserByColumn('id', $with)) {
+                    $messages = $this->database->getMessages($logged->getId(), $with);
+
+                    if ($apiMode) {
+                        $m = array();
+
+                        foreach ($messages as $message) {
+                            $m[] = array(
+                                'id' => $message->getId(),
+                                'author' => $message->getAuthor()->getName(),
+                                'authorID' => $message->getAuthor()->getId(),
+                                'receiver' => $message->getReceiver()->getName(),
+                                'date' => $message->getDate(),
+                                'content' => $message->getContent()
+                            );
+                        }
+
+                        echo json_encode($m, \JSON_FORCE_OBJECT);
+                    } else {
+                        return $messages;
+                    }
+                } else {
+                    if ($apiMode) {
+                        $e = array();
+
+                        $e['error'] = "No such user id";
+
+                        echo json_encode($e, \JSON_FORCE_OBJECT);
+                    } else {
+                        throw new \Exception("No such user id");
+                    }
+                }
+            }
+        } else {
+            if ($apiMode) {
+                $e = array();
+
+                $e['error'] = "You are not logged.";
+
+                echo json_encode($c, \JSON_FORCE_OBJECT);
+            } else {
+                throw new \Exception("You are not logged."); 
+            }
         }
     }
 }
