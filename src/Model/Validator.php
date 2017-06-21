@@ -3,15 +3,6 @@ namespace App\Model;
 
 class Validator
 {
-    const LOGIN_ERROR = "Логин должен быть короче 20 английских символов";
-    const LOGIN_EXIST_ERROR = "Логин уже существует";
-    const NAME_ERROR = "Имя должно быть короче 20 русских или английских символов";
-    const PASSWORD_ERROR = "Пароль должен быть длиньше 6 символов и короче 20";
-    const RETRY_PASSWORD_ERROR = "Пароли не совпадают";
-    const NO_MATCHES = "Совпадений не найдено";
-
-
-
     public static function validateLogin($login)
     {
         if (preg_match('/^[a-zA-Z\-_]{1,20}$/', $login)) {
@@ -52,19 +43,19 @@ class Validator
         $errors = array();
 
         if (!Validator::validateLogin($post['login'])) {
-            $errors['login'] = self::LOGIN_ERROR;
+            $errors['login'] = "Логин должен быть короче 20 английских символов";
         }
 
         if (!Validator::validateName($post['name'])) {
-            $errors['name'] = self::NAME_ERROR;
+            $errors['name'] = "Имя должно быть короче 20 русских или английских символов";
         }
 
         if (!Validator::validatePassword($post['password'])) {
-            $error['password'] = self::PASSWORD_ERROR;
+            $error['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
         }
 
         if (!Validator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
-            $errors['retryPassword'] = self::RETRY_PASSWORD_ERROR;
+            $errors['retryPassword'] = "Пароль должен быть длиньше 6 символов и короче 20";
         }
 
         return $errors;
@@ -74,11 +65,11 @@ class Validator
     {
         $errors = array();
         if (!Validator::validateLogin($post['login'])) {
-            $errors['login'] = self::EMAIL_ERROR;
+            $errors['login'] = "Логин должен быть короче 20 английских символов";
         }
 
         if (!Validator::validatePassword($post['password'])) {
-            $errors['password'] = self::PASSWORD_ERROR;
+            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
         }
 
         return $errors;

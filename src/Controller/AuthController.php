@@ -45,7 +45,7 @@ class AuthController extends Controller
             $errors = Validator::validateRegistrationPost($post);
 
             if ($this->database->getUserByColumn('login', $post['login'])) {
-               $errors['login'] = Validator::LOGIN_EXIST_ERROR;
+               $errors['login'] = "Логин уже существует";
             }
 
             if (empty($errors)) {
@@ -108,10 +108,10 @@ class AuthController extends Controller
 
                         die();
                     } else {
-                        $errors['login'] = Validator::NO_MATCHES;
+                        $errors['login'] = "Совпадений не найдено";
                     }
                 } else {
-                    $errors['login'] = Validator::NO_MATCHES;
+                    $errors['login'] = "Совпадений не найдено";
                 }
             }
         }
