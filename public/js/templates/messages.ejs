@@ -1,9 +1,0 @@
-<% for(var key in messages) { %>
-    <div data-message-id="<%= messages[key].id %>" class="message">
-        <span class="date"><%= messages[key].date %></span>
-        <div class="message-container">
-            <div class="author"><a href="user.php%id=<%= messages[key].id %>"><%= messages[key].author %></a></div>
-            <div class="content"><%= messages[key].content %></div>
-        </div>
-    </div>
-<% } %>

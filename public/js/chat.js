@@ -87,12 +87,15 @@ ContactsView.prototype.showContacts = function(contacts) {
   $(this.contactsNotFoundMessage).remove();
 
   if ($.isEmptyObject(contacts)) {
-    var html = new EJS({url: 'js/templates/contacts-not-found.ejs'}).render(data);
+    var template = Handlebars.compile($('#contacts-not-found').html());
+    var html = template(data);
+
     $(this.contacts).html(html);
   } else {
     var data = {contacts: contacts};
 
-    var html = new EJS({url: 'js/templates/contacts.ejs'}).render(data);
+    var template = Handlebars.compile($('#contacts').html());
+    var html = template(data);
 
     $(this.contacts).html(html);
 
@@ -192,7 +195,8 @@ ConversationView.prototype.showMessageForm = function(to) {
 
     var data = {to: to};
 
-    var html = new EJS({url: 'js/templates/messageform.ejs'}).render(data);
+    var template = Handlebars.compile($('#messagefrom').html());
+    var html = template(data);
 
     $(this.conversation).append(html);
 
@@ -208,7 +212,8 @@ ConversationView.prototype.showMessages = function(messages) {
 
   var data = {messages: messages};
 
-  var html = new EJS({url: 'js/templates/messages.ejs'}).render(data);
+  var template = Handlebars.compile($('#messages').html());
+  var html = template(data);
 
   $(this.messageblock).html(html);
 

@@ -18,6 +18,7 @@ if ($logged) {
                 $messages[] = array(
                     'id' => $message->getId(),
                     'author' => $message->getAuthor()->getName(),
+                    'authorID' => $message->getAuthor()->getId(),
                     'receiver' => $message->getReceiver()->getName(),
                     'date' => $message->getDate(),
                     'content' => $message->getContent()
