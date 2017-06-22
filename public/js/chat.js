@@ -46,8 +46,6 @@ Contacts.prototype.handleSubmitOnSearchForm = function(e) {
     function(data) {
       that.view.showContacts(data);
 
-      console.log(data);
-
       window.history.pushState({}, '', '/search.php?q=' + q);
     }
   );
@@ -138,8 +136,6 @@ Conversation.prototype.handleEnterKeyOnMessageForm = function(e) {
 
 Conversation.prototype.handleClickOnMessageInput = function(e) {
   e.preventDefault();
-
-  console.log("CLICK");
 
   $(this.view.messageform).submit();
   $(this.view.messagebox).val('');

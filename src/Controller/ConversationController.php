@@ -65,6 +65,10 @@ class ConversationController extends Controller
                                     $this->database->addUserContact($logged->getId(), $to);
                                 }
 
+                                if (!$this->database->getUserContact($to, $logged->getId())) {
+                                    $this->database->addUserContact($to, $logged->getId());
+                                }
+
                                 if (!$apiMode) {
                                     $this->redirect("/conversation.php?with={$to}");
 
