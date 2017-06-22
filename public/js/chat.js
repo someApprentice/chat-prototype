@@ -121,6 +121,7 @@ function Conversation(modelView, view) {
   this.messagesInterval;
 
   this.view.messagebox.keydown(this.handleEnterKeyOnMessageForm.bind(this));
+  this.view.submit.click(this.handleClickOnMessageInput.bind(this));
   this.view.messageform.submit(this.handleSubmitOnMessageForm.bind(this));
 }
 
@@ -133,6 +134,15 @@ Conversation.prototype.handleEnterKeyOnMessageForm = function(e) {
     $(this.view.messageform).submit();
     $(this.view.messagebox).val('');
   }
+};
+
+Conversation.prototype.handleClickOnMessageInput = function(e) {
+  e.preventDefault();
+
+  console.log("CLICK");
+
+  $(this.view.messageform).submit();
+  $(this.view.messagebox).val('');
 };
 
 Conversation.prototype.handleSubmitOnMessageForm = function(e) {
@@ -200,6 +210,7 @@ function ConversationView() {
 
   this.messageform = $('.message-form');
   this.messagebox = $('textarea[name="message"]');
+  this.submit = $('.message-form input[type="submit"]');
   this.token = Cookies.get('token');
 
   this.selectDialogMessage = $('.select-dialog');
