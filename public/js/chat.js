@@ -50,9 +50,7 @@ Contacts.prototype.handleSubmitOnSearchForm = function(e) {
 
       window.history.pushState({}, '', '/search.php?q=' + q);
     }
-  ).fail(function() {
-    console.log("FAIL");
-  });
+  );
 
   return false;
 };
@@ -270,7 +268,7 @@ ConversationView.prototype.showMessages = function(messages) {
 ConversationView.prototype.moveMessagesToBottom = function() {
   var space = 0;
 
-  var messageContainerHeight = $('.messages').outerHeight();
+  var messageContainerHeight = $(this.messageblock).outerHeight();
   var messagesHeight = 0;
 
   $.each(this.messages, function(i, message) {

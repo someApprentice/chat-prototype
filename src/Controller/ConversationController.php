@@ -167,6 +167,8 @@ class ConversationController extends Controller
                         throw new \Exception("No such user id");
                     }
                 }
+            } else {
+                return $messages;
             }
         } else {
             if ($apiMode) {
