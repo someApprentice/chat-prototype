@@ -10,14 +10,64 @@ Controller.prototype.handleConversation = function(e) {
 
   var datawith = $(this).attr('data-with');
 
-  controller.conversation.getMessages(datawith);
+  controller.conversation.backend.getMessages(datawith).then(function(data) {
+    controller.conversation.view.showMessageForm(datawith);
+    controller.conversation.view.showMessages(data);
+    controller.conversation.view.moveMessagesToBottom();
+    controller.conversation.view.scrollDownMessages();
+  });
   controller.conversation.refreshMessages(datawith);
 }
 
 
-function Contacts(modelView, view) {
+function Backend() {
+
+}
+
+Backend.prototype.getContacts = function() {
+  var promise = $.get(
+    'api/v1/getcontacts.php'
+  );
+
+  return $promise;
+};
+
+Backend.prototype.searchContacts = function(query) {
+  var promise = $.get(
+    'api/v1/search.php',
+    {q: query}
+  );
+
+  return promise;
+}
+
+Backend.prototype.getMessages = function(datawith) {
+  var promise = $.get(
+    'api/v1/getmessages.php',
+    {with: datawith}
+  );
+
+  return promise;
+};
+
+Backend.prototype.postMessage = function(to, message, token) {
+  var promise = $.post(
+    'api/v1/send.php?to=' + to,
+    {
+      message: message,
+      token: token
+    }
+  );
+
+  return promise;
+};
+
+function Contacts(backend, modelView, view) {
+  this.backend = backend;
   this.modelView  = modelView;
   this.view = view;
+
+  this.contactsInterval;
 
   this.view.searchbox.keydown(this.handleEnterKeyOnSearchForm.bind(this));
   this.view.searchform.submit(this.handleSubmitOnSearchForm.bind(this));
@@ -39,16 +89,15 @@ Contacts.prototype.handleSubmitOnSearchForm = function(e) {
 
   var q = $(that.view.searchbox).val();
 
-  $.get(
-    'api/v1/search.php',
-    {q: q},
+  clearInterval(that.contactsInterval);
 
-    function(data) {
+  if (q != '') {
+    that.backend.searchContacts(q).then(function(data) {
       that.view.showContacts(data);
-
-      window.history.pushState({}, '', '/search.php?q=' + q);
-    }
-  );
+    });
+  } else {
+    that.refreshContacts();
+  }
 
   return false;
 };
@@ -59,6 +108,18 @@ Contacts.prototype.handleClickOnContact = function(e) {
   var datawith = $(this).attr('data-with');
 
   window.history.pushState({}, '', '/conversation.php?with=' + datawith);
+};
+
+Contacts.prototype.refreshContacts = function() {
+  var that = this;
+
+  clearInterval(that.contactsInterval);
+
+  that.contactsInterval = setInterval(function() {
+    that.backend.getContacts().then(function(data) {
+      that.view.showContacts(data);
+    });
+  }, 300);
 };
 
 function ContactsModelView() {
@@ -112,7 +173,8 @@ ContactsView.prototype.showContacts = function(contacts) {
 }
 
 
-function Conversation(modelView, view) {
+function Conversation(backend, modelView, view) {
+  this.backend = backend;
   this.modelView = modelView;
   this.view = view;
 
@@ -144,36 +206,15 @@ Conversation.prototype.handleClickOnMessageInput = function(e) {
 Conversation.prototype.handleSubmitOnMessageForm = function(e) {
   e.preventDefault();
 
-  var to = $(this.view.messageform).attr('data-send-to');
+  var to = $(this.view.messageform).attr('data-send-to'),
+      message =  $(this.view.messagebox).val(),
+      token = this.view.token;
 
-  $.post(
-    'api/v1/send.php?to=' + to,
-    {
-      message: $(this.view.messagebox).val(),
-      token: this.view.token
-    },
-
-    function(data) {
-    }
-  );
+  this.backend.postMessage(to, message, token).then(function(data) {
+    // ...
+  });
 
   return false;
-};
-
-Conversation.prototype.getMessages = function(datawith) {
-  var that = this;
-
-  $.get(
-    'api/v1/getmessages.php',
-    {with: datawith},
-
-    function(data) {
-      that.view.showMessageForm(datawith);
-      that.view.showMessages(data);
-      that.view.moveMessagesToBottom();
-      that.view.scrollDownMessages();
-    }
-  );
 };
 
 Conversation.prototype.refreshMessages = function(datawith) {
@@ -182,16 +223,11 @@ Conversation.prototype.refreshMessages = function(datawith) {
   clearInterval(that.messagesInterval);
 
   that.messagesInterval = setInterval(function() {
-    $.get(
-      'api/v1/getmessages.php',
-      {with: datawith},
-
-      function(data) {
+    that.backend.getMessages(datawith).then(function(data) {
         that.view.showMessages(data);
         that.view.moveMessagesToBottom();
         that.view.scrollDownMessages();
-      }
-    );
+      })
   }, 300);
 };
 
@@ -295,15 +331,19 @@ ConversationView.prototype.scrollDownMessages = function() {
 
 
 $(document).ready(function() {
+  var backend = new Backend();
+
   var contactsModelView = new ContactsModelView();
   var contactsView = new ContactsView();
-  var contacts = new Contacts(contactsModelView, contactsView);
+  var contacts = new Contacts(backend, contactsModelView, contactsView);
 
   var conversationModelView = new ConversationModelView();
   var conversationView = new ConversationView();
-  var conversation = new Conversation(conversationModelView, conversationView);
+  var conversation = new Conversation(backend, conversationModelView, conversationView);
 
   var controller = new Controller(contacts, conversation);
+
+  contacts.refreshContacts();
 
   conversationView.moveMessagesToBottom();
   conversationView.scrollDownMessages();
