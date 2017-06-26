@@ -1,6 +1,41 @@
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="js/js.cookie.js"></script>
+
         <script type="text/javascript" src="js/ejs.min.js"></script>
+
+        <script id="contacts-not-found-template" type="text/template">
+            <span class="contacts-not-found">Ничего не найдено</span>
+        </script>
+
+        <script id="contacts-template" type="text/template">
+            <ul class="contacts">
+                <% for(var key in contacts) { %>
+                    <li><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>
+                <% } %>
+            </ul>
+        </script>
+
+        <script id="message-form-template" type="text/template">
+            <form method="post" name="message-form" class="message-form" data-send-to="<%= to %>" action="send.php?to=<%= to %>">
+                <textarea name="message"></textarea>
+                <input type="hidden" name="token" value="<%= token %>">
+                <input type="submit" name="submit" value="Отправить">
+            </form>
+        </script>
+
+        <script id="messages-template" type="text/template">
+            <% for(var key in messages) { %>
+                <div data-message-id="<%= messages[key].id %>" class="message">
+                    <span class="date"><%= messages[key].date %></span>
+                    <div class="message-container">
+                        <div class="author"><a href="user.php?id=<%= messages[key].authorID %>"><%= messages[key].author %></a></div>
+                        <div class="content"><%= messages[key].content %></div>
+                    </div>
+                </div>
+            <% } %>
+        </script>
+
+
         <script type="text/javascript" src="js/chat.js"></script>
     </body>
 </html>

@@ -29,7 +29,7 @@ Backend.prototype.getContacts = function() {
     'api/v1/getcontacts.php'
   );
 
-  return $promise;
+  return promise;
 };
 
 Backend.prototype.searchContacts = function(query) {
@@ -148,22 +148,14 @@ ContactsView.prototype.showContacts = function(contacts) {
   $(this.contactsNotFoundMessage).remove();
 
   if ($.isEmptyObject(contacts)) {
-    var template = '<span class="contacts-not-found">Ничего не найдено</span>';
-  
+    var template = $('#contacts-not-found-template').html();
     var html = ejs.render(template, data);
 
     $(this.contacts).html(html);
   } else {
     var data = {contacts: contacts};
 
-    var template = 
-      '<ul class="contacts">' +
-          '<% for(var key in contacts) { %>' +
-              '<li><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>' +
-          '<% } %>' +
-      '</ul>'
-    ;
-      
+    var template = $('#contacts-template').html(); 
     var html = ejs.render(template, data);
 
     $(this.contacts).html(html);
@@ -259,14 +251,7 @@ ConversationView.prototype.showMessageForm = function(to) {
       token: this.token
     };
 
-    var template = 
-      '<form method="post" name="message-form" class="message-form" data-send-to="<%= to %>"" action="send.php?to=<%= to %>">' +
-          '<textarea name="message"></textarea>' +
-          '<input type="hidden" name="token" value="<%= token %>">' +
-          '<input type="submit" name="submit" value="Отправить">' +
-      '</form>'
-    ;
-      
+    var template = $('#message-form-template').html();
     var html = ejs.render(template, data);
 
     $(this.conversation).append(html);
@@ -282,18 +267,7 @@ ConversationView.prototype.showMessages = function(messages) {
   this.messages.remove();
 
   var data = {messages: messages};
-
-  var template = 
-    '<% for(var key in messages) { %>' +
-        '<div data-message-id="<%= messages[key].id %>" class="message">' +
-            '<span class="date"><%= messages[key].date %></span>' +
-            '<div class="message-container">' +
-                '<div class="author"><a href="user.php?id=<%= messages[key].authorID %>"><%= messages[key].author %></a></div>' +
-                '<div class="content"><%= messages[key].content %></div>' +
-            '</div>' +
-        '</div>' +
-    '<% } %>'
-  ;
+  var template = $('#messages-template').html();
     
   var html = ejs.render(template, data);
 
