@@ -148,6 +148,12 @@ ContactsView.prototype.turnCheckedClass = function(e) {
 };
 
 ContactsView.prototype.showContacts = function(contacts) {
+  var checked = $('.checked');
+
+  if(checked.length == 1) {
+    var checkedId = checked.children().attr('data-with');
+  }
+
   $(this.contactList).remove();
   $(this.contactsNotFoundMessage).remove();
 
@@ -157,7 +163,10 @@ ContactsView.prototype.showContacts = function(contacts) {
 
     $(this.contacts).html(html);
   } else {
-    var data = {contacts: contacts};
+    var data = {
+      contacts: contacts,
+      checkedId: checkedId
+    };
 
     var template = $('#contacts-template').html(); 
     var html = ejs.render(template, data);
