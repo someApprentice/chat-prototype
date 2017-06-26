@@ -11,10 +11,14 @@ Controller.prototype.handleConversation = function(e) {
   var datawith = $(this).attr('data-with');
 
   controller.conversation.backend.getMessages(datawith).then(function(data) {
-    controller.conversation.view.showMessageForm(datawith);
-    controller.conversation.view.showMessages(data);
-    controller.conversation.view.moveMessagesToBottom();
-    controller.conversation.view.scrollDownMessages();
+    var newDataWith = $(this).attr('data-with');
+
+    if (newDataWith == datawith) {
+      controller.conversation.view.showMessageForm(datawith);
+      controller.conversation.view.showMessages(data);
+      controller.conversation.view.moveMessagesToBottom();
+      controller.conversation.view.scrollDownMessages(); 
+    }
   });
   controller.conversation.refreshMessages(datawith);
 }
@@ -216,10 +220,14 @@ Conversation.prototype.refreshMessages = function(datawith) {
 
   that.messagesInterval = setInterval(function() {
     that.backend.getMessages(datawith).then(function(data) {
+      var newDataWith = $(this).attr('data-with');
+
+      if (newDataWith == datawith) {
         that.view.showMessages(data);
         that.view.moveMessagesToBottom();
         that.view.scrollDownMessages();
-      })
+      }
+    })
   }, 300);
 };
 
