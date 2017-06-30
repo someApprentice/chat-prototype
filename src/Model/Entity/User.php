@@ -13,6 +13,24 @@ class User
 
     protected $salt;
 
+    public function fillData(array $data) {
+        $allowed = array(
+            'id',
+            'login',
+            'name',
+            'hash',
+            'salt'
+        );
+
+        foreach($data as $key => $value) {
+            if (in_array($key, $allowed)) {
+                $this->$key = $value;
+            }
+        }
+
+        return $this;
+    }
+
     public function getId()
     {
         return $this->id;

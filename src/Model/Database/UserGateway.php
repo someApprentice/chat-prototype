@@ -48,13 +48,9 @@ class UserGateway extends TableDataGateway
 
         foreach ($results as $key => $result) {
             $user = new User();            
-            $user->setId($result['id']);
-            $user->setLogin($result['login']);
-            $user->setName($result['name']);
-            $user->setHash($result['hash']);
-            $user->setSalt($result['salt']);
+            $user->fillData($result);
 
-            $results[$key]  = $user;
+            $results[$key] = $user;
         }
 
         return $results;
