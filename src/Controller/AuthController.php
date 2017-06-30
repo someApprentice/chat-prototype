@@ -2,8 +2,8 @@
 namespace App\Controller;
 
 use App\Controller\Controller;
-use App\Model\Database;
-use App\Model\Validator;
+use App\Model\Database\UserGateway;
+use App\Model\Validations\AuthValidator as Validator;
 use App\Model\Helper;
 use App\Model\Entity\User;
 use App\View\View;
@@ -14,7 +14,7 @@ class AuthController extends Controller
 
     protected $view;
 
-    public function __construct(Database $database, View $view)
+    public function __construct(UserGateway $database, View $view)
     {
         $this->database = $database;
         $this->view = $view;

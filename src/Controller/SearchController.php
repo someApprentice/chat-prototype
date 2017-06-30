@@ -3,7 +3,7 @@ namespace App\Controller;
 
 use App\Controller\Controller;
 use App\Controller\AuthController;
-use App\Model\Database;
+use App\Model\Database\UserGateway;
 use App\View\View;
 
 class SearchController extends Controller
@@ -14,7 +14,7 @@ class SearchController extends Controller
 
     protected $view;
 
-    public function __construct(AuthController $authController, Database $database, View $view) {
+    public function __construct(AuthController $authController, UserGateway $database, View $view) {
         $this->authController = $authController;
         $this->database = $database;
         $this->view = $view;

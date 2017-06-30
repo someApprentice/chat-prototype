@@ -3,8 +3,8 @@ namespace App\Controller;
 
 use App\Controller\Controller;
 use App\Controller\AuthController;
-use App\Model\Database;
-use App\Model\Validator;
+use App\Model\Database\MessageGateway;
+use App\Model\Validations\Validator;
 use App\Model\Entity\Message;
 use App\View\View;
 
@@ -16,7 +16,7 @@ class ConversationController extends Controller
 
     protected $view;
 
-    public function __construct(AuthController $authController, Database $database, View $view)
+    public function __construct(AuthController $authController, MessageGateway $database, View $view)
     {
         $this->authController = $authController;
         $this->database = $database;

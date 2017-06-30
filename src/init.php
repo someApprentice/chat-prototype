@@ -3,7 +3,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Pimple\Container as Pimple;
 
-use App\Model\Database;
+use App\Model\Database\TableDataGateway;
+use App\Model\Database\UserGateway;
+use App\Model\Database\MessageGateway;
 use App\View\View;
 use App\Controller\AuthController;
 use App\Controller\ConversationController;
@@ -38,8 +40,16 @@ $container['PDO'] = function () {
     return $pdo;
 };
 
-$container['Database'] = function ($c) {
-    return new Database($c['PDO']);
+$container['TableDataGateway'] = function ($c) {
+    return new TableDataGateway($c['PDO']);
+};
+
+$container['UserGateway'] = function ($c) {
+    return new UserGateway($c['PDO']);
+};
+
+$container['MessageGateway'] = function ($c) {
+    return new MessageGateway($c['PDO']);
 };
 
 $container['View'] = function ($c) {
@@ -47,11 +57,11 @@ $container['View'] = function ($c) {
 };
 
 $container['AuthController'] = function ($c) {
-    return new AuthController($c['Database'], $c['View']);
+    return new AuthController($c['UserGateway'], $c['View']);
 };
 
 $container['ConversationController'] = function ($c) {
-    return new ConversationController($c['AuthController'], $c['Database'], $c['View']);
+    return new ConversationController($c['AuthController'], $c['MessageGateway'], $c['View']);
 };
 
 $container['IndexController'] = function ($c) {
@@ -59,5 +69,5 @@ $container['IndexController'] = function ($c) {
 };
 
 $container['SearchController'] = function ($c) {
-    return new SearchController($c['AuthController'], $c['Database'], $c['View']);
+    return new SearchController($c['AuthController'], $c['UserGateway'], $c['View']);
 };

@@ -1,45 +1,11 @@
 <?php
-namespace App\Model;
+namespace App\Model\Database;
 
+use App\Model\Database\TableDataGateway;
 use App\Model\Entity\User;
-use App\Model\Entity\Message;
 
-class Database
+class UserGateway extends TableDataGateway
 {
-    protected $pdo;
-
-    public function __construct(\PDO $pdo)
-    {
-        $this->pdo = $pdo;
-    }
-
-    public function addUser(User $user) {
-        $pdo = $this->pdo;
-
-        $query = $pdo->prepare("INSERT INTO users (
-                id,
-                login,
-                name,
-                hash,
-                salt
-            ) VALUES (
-                NULL,
-                :login,
-                :name,
-                :hash,
-                :salt
-            )"
-        );
-
-        $query->execute(array(
-            'login' => $user->getLogin(),
-            'name' => $user->getName(),
-            'hash' => $user->getHash(),
-            'salt' => $user->getSalt()
-        ));
-    }
-
-
     public function getUserByColumn($column, $value)
     {
         $pdo = $this->pdo;
@@ -136,43 +102,6 @@ class Database
             $user = $this->getUserByColumn('id', $result['contact']);
 
             $results[$key]  = $user;
-        }
-
-        return $results;
-    }
-
-    public function addMessage(Message $message)
-    {
-        $pdo = $this->pdo;
-
-        $query = $pdo->prepare("INSERT INTO messages (id, author, receiver,  date, content) VALUES (NULL, :author, :receiver, CURRENT_TIMESTAMP, :content)");
-        $query->execute(array(
-            'author' => $message->getAuthor(),
-            'receiver' => $message->getReceiver(),
-            'content' => $message->getContent()
-        ));
-    }
-
-    public function getMessages($author, $receiver)
-    {
-        $pdo = $this->pdo;
-
-        $query = $pdo->prepare("SELECT * FROM messages WHERE (author=:author and receiver=:receiver) or (author=:receiver and receiver=:author)");
-        $query->bindValue(':author', $author);
-        $query->bindValue(':receiver', $receiver);
-        $query->execute();
-
-        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
-
-        foreach ($results as $key => $result) {
-            $message = new Message();
-            $message->setId($result['id']);
-            $message->setAuthor($this->getUserByColumn('id', $result['author']));
-            $message->setReceiver($this->getUserByColumn('id', $result['receiver']));
-            $message->setDate($result['date']);
-            $message->setContent($result['content']);
-
-            $results[$key] = $message;
         }
 
         return $results;

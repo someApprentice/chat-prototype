@@ -1,7 +1,9 @@
 <?php
-namespace App\Model;
+namespace App\Model\Validations;
 
-class Validator
+use App\Model\Validations\Validator;
+
+class AuthValidator extends Validator;
 {
     public static function validateLogin($login)
     {
@@ -42,19 +44,19 @@ class Validator
     {
         $errors = array();
 
-        if (!Validator::validateLogin($post['login'])) {
+        if (!AuthValidator::validateLogin($post['login'])) {
             $errors['login'] = "Логин должен быть короче 20 английских символов";
         }
 
-        if (!Validator::validateName($post['name'])) {
+        if (!AuthValidator::validateName($post['name'])) {
             $errors['name'] = "Имя должно быть короче 20 русских или английских символов";
         }
 
-        if (!Validator::validatePassword($post['password'])) {
+        if (!AuthValidator::validatePassword($post['password'])) {
             $error['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
         }
 
-        if (!Validator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
+        if (!AuthValidator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
             $errors['retryPassword'] = "Пароль должен быть длиньше 6 символов и короче 128";
         }
 
@@ -64,25 +66,14 @@ class Validator
     public static function validateLoginPost($post)
     {
         $errors = array();
-        if (!Validator::validateLogin($post['login'])) {
+        if (!AuthValidator::validateLogin($post['login'])) {
             $errors['login'] = "Логин должен быть короче 20 английских символов";
         }
 
-        if (!Validator::validatePassword($post['password'])) {
+        if (!AuthValidator::validatePassword($post['password'])) {
             $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 128";
         }
 
         return $errors;
-    }
-
-    public static function validateToken($token)
-    {
-        if (isset($_COOKIE['token'])) {
-            if ($token != "" and $_COOKIE['token'] != "" and $token === $_COOKIE['token']) {
-                return true;
-            }
-        }
-        
-        return false;
     }
 }
