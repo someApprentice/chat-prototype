@@ -35,7 +35,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if (isset($with)) : ?>
+            <?php if (isset($with)) : ?>                
                  <form method="post" name="message-form" class="message-form" data-send-to="<?= isset($with) ? $with : '' ?>"" action="send.php?to=<?= isset($with) ? $with : '' ?>">
                     <textarea name="message"></textarea>
 

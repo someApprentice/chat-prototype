@@ -155,3 +155,9 @@ header {
 .authorization-form input[type="submit"] {
     height: 36px;
 }
+
+.connection-error {
+    position: absolute;
+
+    color: red;
+}

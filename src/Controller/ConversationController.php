@@ -69,7 +69,11 @@ class ConversationController extends Controller
                                     $this->database->addUserContact($to, $logged->getId());
                                 }
 
-                                if (!$apiMode) {
+                                if ($apiMode) {
+                                    $json['status'] = 'Ok';
+
+                                    echo json_encode($json, \JSON_FORCE_OBJECT);
+                                } else {
                                     $this->redirect("/conversation.php?with={$to}");
 
                                     die();
@@ -82,15 +86,25 @@ class ConversationController extends Controller
                         }
                     }
                 } else {
-                    $this->redirect();
+                    if ($apiMode) {
+                        $json['status'] = 'Error';
+                        $json['error'] = 'No such id to send';
 
-                    die();
+                        echo json_encode($json, \JSON_FORCE_OBJECT);
+                    } else {
+                        throw new \Exception("No such id to send");
+                    }
                 }
             }
         } else {
-            $this->redirect();
+            if ($apiMode) {
+                $json['status'] = 'Error';
+                $json['error'] = "You are not logged.";
 
-            die();
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            } else {
+                throw new \Exception("You are not logged."); 
+            }
         }
     }
 
@@ -123,7 +137,7 @@ class ConversationController extends Controller
 
                 $e['error'] = "You are not logged.";
 
-                echo json_encode($c, \JSON_FORCE_OBJECT);
+                echo json_encode($e, \JSON_FORCE_OBJECT);
             } else {
                 throw new \Exception("You are not logged."); 
             }

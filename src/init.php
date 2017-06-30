@@ -10,6 +10,16 @@ use App\Controller\ConversationController;
 use App\Controller\IndexController;
 use App\Controller\SearchController;
 
+set_exception_handler(function($e) {
+    header('HTTP/1.1 500 Internal Server Error');
+
+    $message = "{$e->getMessage()} in {$e->getFile()}\nStack trace:\n{$e->getTraceAsString()}\n throw in {$e->getFile()} on line {$e->getLine()}";
+
+    error_log($message);
+
+    echo $message;
+});
+
 $container = new Pimple();
 
 $container['PDO'] = function () {
