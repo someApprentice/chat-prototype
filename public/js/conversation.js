@@ -6,6 +6,94 @@ function Conversation(backend, modelView, view) {
   this.messagesInterval;
 }
 
+Conversation.prototype.handleEnterKeyOnMessageForm = function() {
+  this.view.messagebox.keydown(
+    function(e) {
+      if (e.ctrlKey && e.keyCode == 13) {
+        $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
+      } else if (e.keyCode == 13) {
+        e.preventDefault();
+
+        $(this.view.messageform).submit();
+        $(this.view.messagebox).val('');
+      }
+    }.bind(this)
+  );
+};
+
+Conversation.prototype.handleClickOnMessageInput = function() {
+  this.view.submit.click(
+    function(e) {
+      e.preventDefault();
+
+      $(this.view.messageform).submit();
+      $(this.view.messagebox).val('');
+    }.bind(this)
+  );
+};
+
+Conversation.prototype.handleSubmitOnMessageForm = function() {
+  this.view.messageform.submit(
+    function(e) {
+      e.preventDefault();
+
+      var that = this;
+
+      var to = $(that.view.messageform).attr('data-send-to'),
+          message =  $(that.view.messagebox).val(),
+          token = that.view.token;
+
+      that.backend.postMessage(to, message, token).then(
+        function(data) {
+          // ...
+        },
+
+        function(jqXHR, textStatus) {
+          var template = $('#connection-error-template').html(); 
+          var html = ejs.render(template);
+
+          $('header').after(html);
+
+          that.backend.handleError(jqXHR, textStatus);
+        }
+      );
+
+      return false;
+    }.bind(this)
+  );
+};
+
+Conversation.prototype.runMessages = function(datawith) {
+  var that = this;
+
+  var url = window.location.href;
+  
+  that.backend.getMessages(datawith).then(function(data) {
+      var actualUrl = window.location.href;
+
+      if (url == actualUrl) {
+        that.view.showMessageForm(datawith);
+        that.view.showMessages(data);
+        that.view.moveMessagesToBottom();
+        that.view.scrollDownMessages();  
+      }
+    },
+
+    function(jqXHR, textStatus) {
+      clearInterval(that.conversation.messagesInterval);
+
+      var template = $('#connection-error-template').html(); 
+      var html = ejs.render(template);
+
+      $('header').after(html);
+
+      that.contacts.backend.handleError(jqXHR, textStatus);
+    }
+  );
+
+  that.refreshMessages(datawith);
+}
+
 Conversation.prototype.refreshMessages = function(datawith) {
   var that = this;
 
