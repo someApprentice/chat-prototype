@@ -75,7 +75,9 @@ Conversation.prototype.runMessages = function(datawith) {
         that.view.showMessageForm(datawith);
         that.view.showMessages(data);
         that.view.moveMessagesToBottom();
-        that.view.scrollDownMessages();  
+
+        var scrollPosition = $(that.view.messageblock)[0].scrollHeight;
+        that.view.scrollDownMessages(scrollPosition);  
       }
     },
 
@@ -104,11 +106,12 @@ Conversation.prototype.refreshMessages = function(datawith) {
 
     that.backend.getMessages(datawith).then(function(data) {
       var actualUrl = window.location.href;
+      var scrollPosition = $(that.view.messageblock).scrollTop() + $(that.view.messageblock).height();
 
       if (url == actualUrl) {
         that.view.showMessages(data);
         that.view.moveMessagesToBottom();
-        that.view.scrollDownMessages();
+        that.view.scrollDownMessages(scrollPosition);
       }
     })
   }, 300);
@@ -190,6 +193,11 @@ ConversationView.prototype.moveMessagesToBottom = function() {
   } 
 };
 
-ConversationView.prototype.scrollDownMessages = function() {
-  $(this.messageblock).scrollTop($(this.messageblock)[0].scrollHeight);
+// may b' there have some better way
+ConversationView.prototype.scrollDownMessages = function(scrollPosition) {
+  var scrollHeight = $(this.messageblock)[0].scrollHeight;
+
+  if (scrollPosition == scrollHeight) {
+    $(this.messageblock).scrollTop(scrollHeight);
+  }
 };
