@@ -97,9 +97,7 @@ class AuthController extends Controller
                 if ($user) {
                     if ($user->getHash() == Helper::generateHash($post['password'], $user->getSalt())) {
                         $expires = 60 * 60 * 24 * 30 * 12 * 3;
-
-                        var_dump($user->getId());
-
+                        
                         setcookie('id', $user->getId(), time() + $expires, '/', null, null);
                         setcookie('hash', $user->getHash(), time() + $expires, '/', null, null);
                         setcookie('token', Helper::generateToken(), time() + $expires, '/', null, null);

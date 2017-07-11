@@ -62,13 +62,13 @@ header {
     padding: 0;
 }
 
-.contacts li label {
+.contacts li label, .get-more-messages label {
     display: block;
     overflow: hidden;
     padding: 10px;
 }
 
-.contacts li label:hover {
+.contacts li label:hover, .get-more-messages label:hover {
     background-color: rgba(230,230,230, 1);
 }
 
@@ -82,8 +82,7 @@ header {
     height: 100%;
 }
 
-
-.messages {
+.messages-container {
     overflow-y: scroll;
     height: 80%;
 }
@@ -91,6 +90,10 @@ header {
 /*.message:first-child {
     margin-top: 20%; /* need to calculate */
 /*}*/
+
+.get-more-messages {
+    text-align: center;
+}
 
 .message {
     margin: 0 auto;
@@ -103,7 +106,7 @@ header {
     margin: 0 10px;
 }
 
-.message-container {
+.message-container, .get-more-messages {
     margin: 0 auto;
     width: 75%;
 }

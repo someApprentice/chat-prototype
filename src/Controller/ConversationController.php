@@ -27,15 +27,11 @@ class ConversationController extends Controller
     {
         $logged = $this->authController->getLogged();
 
-        if (isset($_GET['with']) and is_numeric($_GET['with'])) {
-            $with = $_GET['with'];
-        }
-
         $contacts = $this->getContacts();
 
         $messages = $this->getMessages();
 
-        $this->view->renderConversationPage(compact('logged', 'contacts', 'messages', 'with'));
+        $this->view->renderConversationPage(compact('logged', 'contacts', 'messages'));
     }
 
     public function send($apiMode = false)
@@ -153,13 +149,23 @@ class ConversationController extends Controller
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
+                $count = $this->database->getMessagesCount($logged->getId(), $with);
+
                 if ($this->database->getUserByColumn('id', $with)) {
-                    $messages = $this->database->getMessages($logged->getId(), $with);
+                    $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
+
+                    $m = $this->database->getMessages($logged->getId(), $with, $offset);
+
+                    $messages['with'] = $with;
+                    $messages['offset'] =  $offset;
+                    $messages['count'] = count($m);
+                    $messages['totalCount'] = $count;
+                    $messages['messages'] = $m;
 
                     if ($apiMode) {
                         $m = array();
 
-                        foreach ($messages as $message) {
+                        foreach ($messages['messages'] as $message) {
                             $m[] = array(
                                 'id' => $message->getId(),
                                 'author' => $message->getAuthor()->getName(),
@@ -170,7 +176,9 @@ class ConversationController extends Controller
                             );
                         }
 
-                        echo json_encode($m, \JSON_FORCE_OBJECT);
+                        $messages['messages'] = $m;
+
+                        echo json_encode($messages, \JSON_FORCE_OBJECT);
                     } else {
                         return $messages;
                     }

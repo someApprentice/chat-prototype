@@ -29,6 +29,14 @@
             </form>
         </script>
 
+        <script id="get-more-messages-template" type="text/template">
+            <% if (count < totalCount) { %>
+                <div class="get-more-messages">
+                    <label><a data-with="<%= datawith %>" data-offset="<%= offset %>" href="conversation.php?with=<%= datawith %>&offset=<%= offset %>">Получить больше сообщений</a></label>
+                </div>
+            <% } %>
+        </script>
+
         <script id="messages-template" type="text/template">
             <% for(var key in messages) { %>
                 <div data-message-id="<%= messages[key].id %>" class="message">

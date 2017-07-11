@@ -3,7 +3,7 @@ namespace App\Model\Validations;
 
 use App\Model\Validations\Validator;
 
-class AuthValidator extends Validator;
+class AuthValidator extends Validator
 {
     public static function validateLogin($login)
     {

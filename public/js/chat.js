@@ -7,9 +7,7 @@ function Controller(contacts, conversation) {
 
   this.contacts.handleClickOnContact(this.conversation.runMessages.bind(this.conversation));
 
-  this.conversation.handleEnterKeyOnMessageForm();
-  this.conversation.handleClickOnMessageInput();
-  this.conversation.handleSubmitOnMessageForm();
+  this.conversation.handleScrollOnMessageBlock();
 }
 
 function Backend() {
@@ -34,10 +32,13 @@ Backend.prototype.searchContacts = function(query) {
   return promise;
 }
 
-Backend.prototype.getMessages = function(datawith) {
+Backend.prototype.getMessages = function(datawith, offset = 1) {
   var promise = $.get(
     'api/v1/getmessages.php',
-    {with: datawith}
+    {
+      with: datawith,
+      offset: offset
+    }
   );
 
   return promise;
@@ -82,14 +83,11 @@ $(document).ready(function() {
 
   controller.contacts.refreshContacts(conversation.runMessages.bind(conversation));
 
-  var scrollPoistion = $(conversation.view.messageblock)[0].scrollHeight;
-
   conversationView.moveMessagesToBottom();
-  conversationView.scrollDownMessages(scrollPoistion);
 
   if ($(conversationView.messageform).length != 0) {
     var datawith  = $(conversationView.messageform).attr('data-send-to');
 
-    conversation.refreshMessages(datawith);
+    conversation.runMessages(datawith);
   }
 });

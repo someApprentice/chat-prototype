@@ -18,13 +18,14 @@ class MessageGateway extends UserGateway
         ));
     }
 
-    public function getMessages($author, $receiver)
+    public function getMessages($author, $receiver, $offset = 1)
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM messages WHERE (author=:author and receiver=:receiver) or (author=:receiver and receiver=:author)");
+        $query = $pdo->prepare("SELECT * FROM messages WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND (date <= CURRENT_TIMESTAMP AND date >= CURRENT_TIMESTAMP - INTERVAL 7 * :offset DAY) ORDER BY date ASC");
         $query->bindValue(':author', $author);
         $query->bindValue(':receiver', $receiver);
+        $query->bindValue(':offset', (int) $offset, \PDO::PARAM_INT);
         $query->execute();
 
         $results = $query->fetchAll(\PDO::FETCH_ASSOC);
@@ -41,5 +42,19 @@ class MessageGateway extends UserGateway
         }
 
         return $results;
+    }
+
+    public function getMessagesCount($author, $receiver)
+    {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE (author=:author and receiver=:receiver) or (author=:receiver and receiver=:author)");
+        $query->bindValue(':author', $author);
+        $query->bindValue(':receiver', $receiver);
+        $query->execute();
+
+        $result = $query->fetchColumn();
+
+        return $result;
     }
 }

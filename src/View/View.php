@@ -24,7 +24,7 @@ class View
 
         $this->render('/templates/head.html');
         $this->render('/templates/header.phtml', compact('logged'));
-        $this->render('/templates/chat.phtml', compact('contacts', 'messages', 'with'));
+        $this->render('/templates/chat.phtml', compact('contacts', 'messages'));
         $this->render('/templates/foot.html');
     }
 
