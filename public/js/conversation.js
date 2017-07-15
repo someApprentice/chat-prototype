@@ -181,17 +181,19 @@ function ConversationModelView() {
 
 function ConversationView() {
   this.conversation = $('.conversation');
-  this.moremessages = $('.get-more-messages');
-  this.messagescontainer = $('.messages-container');
-  this.messageblock = $('.messages');
-  this.messages = $('.message');
 
-  this.messageform = $('.message-form');
-  this.messagebox = $('textarea[name="message"]');
-  this.submit = $('.message-form input[type="submit"]');
+  this.moremessages = $('.get-more-messages', this.conversation);
+  this.messagescontainer = $('.messages-container', this.conversation);
+  this.messageblock = $('.messages', this.conversation);
+  this.messages = $('.message', this.conversation);
+
+  this.messageform = $('.message-form', this.conversation);
+  this.messagebox = $('textarea[name="message"]', this.conversation);
+  this.submit = $('.message-form input[type="submit"]', this.conversation);
+
+  this.selectDialog = $('.select-dialog', this.conversation);
+
   this.token = Cookies.get('token');
-
-  this.selectDialog = $('.select-dialog');
 }
 
 ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, count, totalCount) {

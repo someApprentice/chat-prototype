@@ -109,13 +109,14 @@ function ContactsModelView() {
 }
 
 function ContactsView() {
-  this.searchform = $('.search-form');
-  this.searchbox = $('input[name="q"]');
+  this.contactbox = $('.contact-box', this.contactbox);
+  this.searchform = $('.search-form', this.contactbox);
+  this.searchbox = $('input[name="q"]', this.searchform);
 
-  this.contacts = $('.contacts');
-  this.contactList = $('.contacts li');
-  this.contactLinks = $('.contacts a');
-  this.contactsNotFoundMessage = $('.contacts-not-found');
+  this.contacts = $('.contacts', this.contactbox);
+  this.contactList = $('.contacts li', this.contactbox);
+  this.contactLinks = $('.contacts a', this.contactbox);
+  this.contactsNotFoundMessage = $('.contacts-not-found', this.contactbox);
 }
 
 ContactsView.prototype.turnCheckedClass = function(e) {
