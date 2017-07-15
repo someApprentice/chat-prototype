@@ -4,10 +4,6 @@ function Controller(contacts, conversation) {
 
   this.contacts.handleEnterKeyOnSearchForm();
   this.contacts.handleSubmitOnSearchForm(this.conversation.runMessages.bind(this.conversation));
-
-  this.contacts.handleClickOnContact(this.conversation.runMessages.bind(this.conversation));
-
-  this.conversation.handleScrollOnMessageBlock();
 }
 
 function Backend() {

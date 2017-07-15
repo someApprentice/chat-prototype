@@ -31,6 +31,7 @@ Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
         that.backend.searchContacts(q).then(
           function(data) {
             that.view.showContacts(data);
+            that.handleClickOnContact(runMessages);
           },
 
           function(jqXHR, textStatus) {
@@ -52,17 +53,19 @@ Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
 };
 
 Contacts.prototype.handleClickOnContact = function(runMessages) {
-  this.view.contactList.click(this.view, this.view.turnCheckedClass);
-
   this.view.contactLinks.click(function(e) {
     e.preventDefault();
+  });
 
+  this.view.contactLinks.mousedown(function(e) {
     var datawith = $(this).attr('data-with');
 
     window.history.pushState({}, '', '/conversation.php?with=' + datawith);
+
+    runMessages(datawith);
   });
 
-  this.view.contactLinks.mousedown(runMessages);
+  this.view.contactList.mousedown(this.view, this.view.turnCheckedClass);
 };
 
 Contacts.prototype.refreshContacts = function(runMessages) {
@@ -74,20 +77,7 @@ Contacts.prototype.refreshContacts = function(runMessages) {
     that.backend.getContacts().then(
       function(data) {
         that.view.showContacts(data);
-
-        that.view.contactLinks.click(function(e) {
-          e.preventDefault();
-        });
-
-        that.view.contactList.mousedown(that.view, that.view.turnCheckedClass);
-        that.view.contactLinks.mousedown(that.handleClickOnContact.bind(that));
-        that.view.contactLinks.mousedown(
-          function() {
-            var datawith = $(this).attr('data-with');
-
-            runMessages(datawith);
-          }
-        );
+        that.handleClickOnContact(runMessages);
       },
 
       function(jqXHR, textStatus) {
@@ -109,13 +99,14 @@ function ContactsModelView() {
 }
 
 function ContactsView() {
-  this.contactbox = $('.contact-box', this.contactbox);
+  this.contactbox = $('.contact-box');
   this.searchform = $('.search-form', this.contactbox);
   this.searchbox = $('input[name="q"]', this.searchform);
 
   this.contacts = $('.contacts', this.contactbox);
-  this.contactList = $('.contacts li', this.contactbox);
-  this.contactLinks = $('.contacts a', this.contactbox);
+  this.contactList = $('li', this.contacts);
+  this.contactLinks = $('a', this.contacts);
+
   this.contactsNotFoundMessage = $('.contacts-not-found', this.contactbox);
 }
 

@@ -31,6 +31,8 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
 };
 
 Conversation.prototype.handleEnterKeyOnMessageForm = function() {
+  this.view.messagebox.off('keydown');
+
   this.view.messagebox.keydown(
     function(e) {
       if (e.ctrlKey && e.keyCode == 13) {
@@ -46,6 +48,8 @@ Conversation.prototype.handleEnterKeyOnMessageForm = function() {
 };
 
 Conversation.prototype.handleClickOnMessageInput = function() {
+  this.view.submit.off('click');
+
   this.view.submit.click(
     function(e) {
       e.preventDefault();
@@ -57,6 +61,8 @@ Conversation.prototype.handleClickOnMessageInput = function() {
 };
 
 Conversation.prototype.handleSubmitOnMessageForm = function() {
+  this.view.messageform.off('submit');
+
   this.view.messageform.submit(
     function(e) {
       e.preventDefault();
@@ -66,20 +72,23 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
       var to = $(that.view.messageform).attr('data-send-to'),
           message =  $(that.view.messagebox).val(),
           token = that.view.token;
-      that.backend.postMessage(to, message, token).then(
-        function(data) {
-          // ...
-        },
 
-        function(jqXHR, textStatus) {
-          var template = $('#connection-error-template').html(); 
-          var html = ejs.render(template);
+      if (message != '') {
+        that.backend.postMessage(to, message, token).then(
+          function(data) {
+            // ...
+          },
 
-          $('header').after(html);
+          function(jqXHR, textStatus) {
+            var template = $('#connection-error-template').html(); 
+            var html = ejs.render(template);
 
-          that.backend.handleError(jqXHR, textStatus);
-        }
-      );
+            $('header').after(html);
+
+            that.backend.handleError(jqXHR, textStatus);
+          }
+        );
+      }
 
       return false;
     }.bind(this)
@@ -100,6 +109,7 @@ Conversation.prototype.runMessages = function(datawith, offset = 1) {
 
         that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
         that.handleClickOnMoreMessages();
+        that.handleScrollOnMessageBlock();
 
         that.view.showMessageForm(datawith);
         that.handleEnterKeyOnMessageForm();
@@ -220,6 +230,7 @@ ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, c
 
 ConversationView.prototype.showMessageForm = function(to) {
   if ($(this.messageform).length) {
+
     $(this.messageform).attr('action', 'send.php?to=' + to);
     $(this.messageform).attr('data-send-to', to);
     $('input[name="token"]', this.messageform).val(this.token);
@@ -276,6 +287,6 @@ ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollH
   var newBottomScrollPosition = $(this.messagescontainer).prop('scrollHeight');
 
   if (Math.round(scrollPosition) == scrollHeight) {
-    $(this.messagescontainer).scrollTop(newButtomScrollPosition);
+    $(this.messagescontainer).scrollTop(newBottomScrollPosition);
   }
 };
