@@ -83,16 +83,20 @@ header {
 }
 
 .messages-container {
+    position: relative;
     overflow-y: scroll;
+    width: 100%;
     height: 80%;
 }
 
-/*.message:first-child {
-    margin-top: 20%; /* need to calculate */
-/*}*/
-
 .get-more-messages {
     text-align: center;
+}
+
+.messages {
+    position: absolute;
+    top: 100%;
+    width: 100%;
 }
 
 .message {

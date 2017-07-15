@@ -83,8 +83,6 @@ $(document).ready(function() {
 
   controller.contacts.refreshContacts(conversation.runMessages.bind(conversation));
 
-  conversationView.moveMessagesToBottom();
-
   if ($(conversationView.messageform).length != 0) {
     var datawith  = $(conversationView.messageform).attr('data-send-to');
 

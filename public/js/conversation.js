@@ -107,7 +107,6 @@ Conversation.prototype.runMessages = function(datawith, offset = 1) {
         that.handleSubmitOnMessageForm();
 
         that.view.showMessages(data);
-        that.view.moveMessagesToBottom();
 
         if (offset < 2) {
           var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
@@ -154,7 +153,6 @@ Conversation.prototype.refreshMessages = function(datawith, offset = 1) {
           that.handleClickOnMoreMessages();
 
           that.view.showMessages(data);
-          that.view.moveMessagesToBottom();
           that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
           return data;
@@ -271,24 +269,9 @@ ConversationView.prototype.removeSelectDialog = function() {
   }
 }
 
-ConversationView.prototype.moveMessagesToBottom = function() {
-  var space = 0;
-
-  var messageContainerHeight = $(this.messagescontainer).outerHeight();
-  var messagesHeight = 0;
-
-  messagesHeight = $(this.messageblock).outerHeight(); 
-
-  if (messagesHeight < messageContainerHeight) {
-    space = messageContainerHeight - messagesHeight;
-
-    this.messages.first().css('padding-top', space);
-  } 
-};
-
-// may b' there have some better way
+// may b' there is some better way
 ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollHeight) {  
-  var newButtomScrollPosition = $(this.messagescontainer).prop('scrollHeight');
+  var newBottomScrollPosition = $(this.messagescontainer).prop('scrollHeight');
 
   if (Math.round(scrollPosition) == scrollHeight) {
     $(this.messagescontainer).scrollTop(newButtomScrollPosition);
