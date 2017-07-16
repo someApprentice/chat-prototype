@@ -95,7 +95,11 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
   );
 };
 
-Conversation.prototype.runMessages = function(datawith, offset = 1) {
+Conversation.prototype.runMessages = function(datawith, offset) {
+  if (offset === undefined) {
+    offset = 1;
+  }
+  
   var that = this;
 
   var url = window.location.href;
@@ -143,7 +147,11 @@ Conversation.prototype.runMessages = function(datawith, offset = 1) {
   that.refreshMessages(datawith, offset);
 }
 
-Conversation.prototype.refreshMessages = function(datawith, offset = 1) {
+Conversation.prototype.refreshMessages = function(datawith, offset) {
+  if (offset === undefined) {
+    offset = 1;
+  }
+
   var that = this;
 
   clearInterval(that.modelView.messagesInterval);

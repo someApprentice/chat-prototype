@@ -28,7 +28,11 @@ Backend.prototype.searchContacts = function(query) {
   return promise;
 }
 
-Backend.prototype.getMessages = function(datawith, offset = 1) {
+Backend.prototype.getMessages = function(datawith, offset) {
+  if (offset === undefined) {
+    offset = 1;
+  }
+  
   var promise = $.get(
     'api/v1/getmessages.php',
     {
