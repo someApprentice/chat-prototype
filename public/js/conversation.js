@@ -198,8 +198,8 @@ function ConversationView() {
   this.messages = $('.message', this.conversation);
 
   this.messageform = $('.message-form', this.conversation);
-  this.messagebox = $('textarea[name="message"]', this.conversation);
-  this.submit = $('.message-form input[type="submit"]', this.conversation);
+  this.messagebox = $('textarea[name="message"]', this.messageform);
+  this.submit = $('input[type="submit"]', this.messageform);
 
   this.selectDialog = $('.select-dialog', this.conversation);
 
@@ -246,6 +246,7 @@ ConversationView.prototype.showMessageForm = function(to) {
     $(this.conversation).append(html);
 
     this.messageform = $('.message-form');
+    this.messagebox = $('textarea[name="message"]', this.messageform);
   }
 };
 
