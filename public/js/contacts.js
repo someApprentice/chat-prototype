@@ -60,7 +60,12 @@ Contacts.prototype.handleClickOnContact = function(runMessages) {
   this.view.contactLinks.mousedown(function(e) {
     var datawith = $(this).attr('data-with');
 
-    window.history.pushState({}, '', '/conversation.php?with=' + datawith);
+    var url = window.location.href;
+    var matches = url.match(/with=(\d+)/);
+
+    if (!matches || datawith != matches[1]) {
+      window.history.pushState({}, '', '/conversation.php?with=' + datawith);
+    }
 
     runMessages(datawith);
   });
