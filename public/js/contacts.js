@@ -3,7 +3,8 @@ function Contacts(backend, modelView, view) {
   this.modelView  = modelView;
   this.view = view;
 
-  this.contactsInterval;
+  this.timeout;
+  this.t = 500;
 }
 
 Contacts.prototype.handleEnterKeyOnSearchForm = function() {
@@ -25,7 +26,7 @@ Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
 
       var q = $(that.view.searchbox).val();
 
-      clearInterval(that.contactsInterval);
+      clearTimeout(that.timeout);
 
       if (q != '') {
         that.backend.searchContacts(q).then(
@@ -76,31 +77,36 @@ Contacts.prototype.handleClickOnContact = function(runMessages) {
 Contacts.prototype.refreshContacts = function(runMessages) {
   var that = this;
 
-  clearInterval(that.contactsInterval);
+  that.modelView.contacts = that.backend.getContacts().then(
+    function(data) {
+      that.view.showContacts(data);
+      that.handleClickOnContact(runMessages);
 
-  that.contactsInterval = setInterval(function() {
-    that.backend.getContacts().then(
-      function(data) {
-        that.view.showContacts(data);
-        that.handleClickOnContact(runMessages);
-      },
+      return data;
+    },
 
-      function(jqXHR, textStatus) {
-        clearInterval(that.contactsInterval);
+    function(jqXHR, textStatus) {
+      clearTimeout(that.tiemout);
 
-        var template = $('#connection-error-template').html(); 
-        var html = ejs.render(template);
+      var template = $('#connection-error-template').html(); 
+      var html = ejs.render(template);
 
-        $('header').after(html);
+      $('header').after(html);
 
-        that.backend.handleError(jqXHR, textStatus);
-      }
-    )
-  }, 500);
+      that.backend.handleError(jqXHR, textStatus);
+    }
+  );
+
+  clearTimeout(that.timeout);
+
+  that.timeout = setTimeout(function() {
+    that.refreshContacts(runMessages);
+  }, that.t);
 };
 
-function ContactsModelView() {
 
+function ContactsModelView() {
+  this.contacts;
 }
 
 function ContactsView() {

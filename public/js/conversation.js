@@ -2,6 +2,9 @@ function Conversation(backend, modelView, view) {
   this.backend = backend;
   this.modelView = modelView;
   this.view = view;
+
+  this.timeout;
+  this.t = 500;
 }
 
 Conversation.prototype.handleScrollOnMessageBlock = function() {
@@ -133,7 +136,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
     },
 
     function(jqXHR, textStatus) {
-      clearInterval(that.modelView.messagesInterval);
+      clearTimeout(that.timeout);
 
       var template = $('#connection-error-template').html(); 
       var html = ejs.render(template);
@@ -154,47 +157,47 @@ Conversation.prototype.refreshMessages = function(datawith, offset) {
 
   var that = this;
 
-  clearInterval(that.modelView.messagesInterval);
+  var url = window.location.href;
 
-  that.modelView.messagesInterval = setInterval(function() {
-    var url = window.location.href;
+  that.modelView.messages = that.backend.getMessages(datawith, offset).then(
+    function(data) {
+      var actualUrl = window.location.href;
 
-    that.modelView.messages = that.backend.getMessages(datawith, offset).then(
-      function(data) {
-        var actualUrl = window.location.href;
+      var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
+      var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
 
-        var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
-        var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
+      if (url == actualUrl) {
+        that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
+        that.handleClickOnMoreMessages();
 
-        if (url == actualUrl) {
-          that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
-          that.handleClickOnMoreMessages();
+        that.view.showMessages(data);
+        that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
-          that.view.showMessages(data);
-          that.view.scrollDownMessages(scrollPosition, scrollHeight);
-
-          return data;
-        }
-      },
-
-      function(jqXHR, textStatus) {
-        clearInterval(that.modelView.messagesInterval);
-
-        var template = $('#connection-error-template').html(); 
-        var html = ejs.render(template);
-
-        $('header').after(html);
-
-        that.backend.handleError(jqXHR, textStatus);
+        return data;
       }
-    );
-  }, 300);
+    },
+
+    function(jqXHR, textStatus) {
+      clearTimeout(that.timeout);
+
+      var template = $('#connection-error-template').html(); 
+      var html = ejs.render(template);
+
+      $('header').after(html);
+
+      that.backend.handleError(jqXHR, textStatus);
+    }
+  );
+
+  clearTimeout(that.timeout);
+
+  that.timeout = setTimeout(function() {
+    that.refreshMessages(datawith, offset);
+  }, that.t);
 };
 
 function ConversationModelView() {
-  this.messages = {};
-
-  this.messagesInterval;
+  this.messages;
 }
 
 function ConversationView() {
