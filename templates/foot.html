@@ -14,11 +14,9 @@
         </script>
 
         <script id="contacts-template" type="text/template">
-            <ul class="contacts">
-                <% for(var key in contacts) { %>
-                    <li  <% if (contacts[key].id == checkedId) { %> class="checked" <% } %>><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>
-                <% } %>
-            </ul>
+            <% for(var key in contacts) { %>
+                <li  <% if (contacts[key].id == checkedId) { %> class="checked" <% } %>><a data-with="<%= contacts[key].id %>" href="conversation.php?with=<%= contacts[key].id %>"><label><%= contacts[key].name %></label></a></li>
+            <% } %>
         </script>
 
         <script id="message-form-template" type="text/template">
