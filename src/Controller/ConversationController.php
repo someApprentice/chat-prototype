@@ -77,6 +77,8 @@ class ConversationController extends Controller
                             }
                         } else {
                             if ($apiMode) {
+                                header('HTTP/1.1 400 Bad Request');
+
                                 $json['status'] = 'Error';
                                 $json['error'] = 'Invalid token';
                             } else {
@@ -88,6 +90,8 @@ class ConversationController extends Controller
                     }
                 } else {
                     if ($apiMode) {
+                        header('HTTP/1.1 400 Bad Request');
+
                         $json['status'] = 'Error';
                         $json['error'] = 'No such user id';
 
@@ -99,6 +103,8 @@ class ConversationController extends Controller
             }
         } else {
             if ($apiMode) {
+                header('HTTP/1.1 401 Unauthorized');
+
                 $json['status'] = 'Error';
                 $json['error'] = "You are not logged.";
 
@@ -134,6 +140,8 @@ class ConversationController extends Controller
             }
         } else {
             if ($apiMode) {
+                header('HTTP/1.1 401 Unauthorized');
+
                 $e = array();
 
                 $e['error'] = "You are not logged.";
@@ -189,6 +197,8 @@ class ConversationController extends Controller
                     }
                 } else {
                     if ($apiMode) {
+                        header('HTTP/1.1 401 Unauthorized');
+
                         $e = array();
 
                         $e['error'] = "No such user id";
@@ -203,6 +213,8 @@ class ConversationController extends Controller
             }
         } else {
             if ($apiMode) {
+                header('HTTP/1.1 401 Unauthorized');
+                
                 $e = array();
 
                 $e['error'] = "You are not logged.";
