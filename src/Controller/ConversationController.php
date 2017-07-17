@@ -76,19 +76,24 @@ class ConversationController extends Controller
                                 }
                             }
                         } else {
-                            $this->redirect();
+                            if ($apiMode) {
+                                $json['status'] = 'Error';
+                                $json['error'] = 'Invalid token';
+                            } else {
+                                $this->redirect();
 
-                            die();
+                                die();
+                            }
                         }
                     }
                 } else {
                     if ($apiMode) {
                         $json['status'] = 'Error';
-                        $json['error'] = 'No such id to send';
+                        $json['error'] = 'No such user id';
 
                         echo json_encode($json, \JSON_FORCE_OBJECT);
                     } else {
-                        throw new \Exception("No such id to send");
+                        throw new \Exception("No such user id");
                     }
                 }
             }
