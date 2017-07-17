@@ -47,14 +47,28 @@ class SearchController extends Controller
                     $this->view->renderConversationPage(compact('logged', 'query', 'contacts'));
                 }
             } else {
-                $this->redirect();
-                
-                die();
+                if ($apiMode) {
+                    header('HTTP/1.1 400 Bad Request');
+
+                    $json['status'] = 'Error';
+                    $json['error'] = 'No search query';
+
+                    echo json_encode($json, \JSON_FORCE_OBJECT);
+                } else {
+                    throw new \Exception("No search query");
+                }
             }
         } else {
-            $this->redirect();
+            if ($apiMode) {
+                header('HTTP/1.1 401 Unauthorized');
 
-            die();
+                $json['status'] = 'Error';
+                $json['error'] = "You are not logged.";
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            } else {
+                throw new \Exception("You are not logged."); 
+            }
         }
     }
 }
