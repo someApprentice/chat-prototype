@@ -273,12 +273,6 @@ ConversationView.prototype.showMessages = function(messages) {
 
   $(this.messageblock).html(html);
 
-  $(this.messageblock.find('.content')).each(function() {
-    var text = $(this).text().replace(/[\r\n]/g, "<br>");
-
-    $(this).html(text);
-  });
-
   this.messages = $('.message');
 };
 

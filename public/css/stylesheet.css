@@ -110,6 +110,10 @@ header {
     margin: 0 10px;
 }
 
+.message .content {
+    white-space: pre;
+}
+
 .message-container, .get-more-messages {
     margin: 0 auto;
     width: 75%;
