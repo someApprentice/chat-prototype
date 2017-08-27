@@ -82,9 +82,8 @@ $(document).ready(function() {
   var contactsView = new ContactsView();
   var contacts = new Contacts(backend, contactsModelView, contactsView);
 
-  var conversationModelView = new ConversationModelView();
   var conversationView = new ConversationView();
-  var conversation = new Conversation(backend, conversationModelView, conversationView);
+  var conversation = new Conversation(backend, conversationView);
 
   var controller = new Controller(contacts, conversation);
 

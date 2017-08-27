@@ -1,6 +1,5 @@
-function Conversation(backend, modelView, view) {
+function Conversation(backend, view) {
   this.backend = backend;
-  this.modelView = modelView;
   this.view = view;
 
   this.timeout;
@@ -101,7 +100,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
 
   var url = window.location.href;
   
-  that.modelView.messages = that.backend.getMessages(datawith, offset).then(
+  that.backend.getMessages(datawith, offset).then(
     function(data) {
       var actualUrl = window.location.href;
 
@@ -135,7 +134,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
           that.view.scrollDownMessages(scrollPosition, scrollPosition); 
         }
 
-        return data;
+        that.refreshMessages(datawith, offset);
       }
     },
 
@@ -150,8 +149,6 @@ Conversation.prototype.runMessages = function(datawith, offset) {
       that.backend.handleError(jqXHR, textStatus);
     }
   );
-
-  that.refreshMessages(datawith, offset);
 }
 
 Conversation.prototype.refreshMessages = function(datawith, offset) {
@@ -163,7 +160,7 @@ Conversation.prototype.refreshMessages = function(datawith, offset) {
 
   var url = window.location.href;
 
-  that.modelView.messages = that.backend.getMessages(datawith, offset).then(
+  that.backend.getMessages(datawith, offset).then(
     function(data) {
       var actualUrl = window.location.href;
 
@@ -177,7 +174,11 @@ Conversation.prototype.refreshMessages = function(datawith, offset) {
         that.view.showMessages(data);
         that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
-        return data;
+        clearTimeout(that.timeout);
+
+        that.timeout = setTimeout(function() {
+          that.refreshMessages(datawith, offset);
+        }, that.t);
       }
     },
 
@@ -192,17 +193,8 @@ Conversation.prototype.refreshMessages = function(datawith, offset) {
       that.backend.handleError(jqXHR, textStatus);
     }
   );
-
-  clearTimeout(that.timeout);
-
-  that.timeout = setTimeout(function() {
-    that.refreshMessages(datawith, offset);
-  }, that.t);
 };
 
-function ConversationModelView() {
-  this.messages;
-}
 
 function ConversationView() {
   this.conversation = $('.conversation');
