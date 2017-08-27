@@ -34,8 +34,6 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
 };
 
 Conversation.prototype.handleEnterKeyOnMessageForm = function() {
-  this.view.messagebox.off('keydown');
-
   this.view.messagebox.keydown(
     function(e) {
       if (e.ctrlKey && e.keyCode == 13) {
@@ -51,8 +49,6 @@ Conversation.prototype.handleEnterKeyOnMessageForm = function() {
 };
 
 Conversation.prototype.handleClickOnMessageInput = function() {
-  this.view.submit.off('click');
-
   this.view.submit.click(
     function(e) {
       e.preventDefault();
@@ -64,8 +60,6 @@ Conversation.prototype.handleClickOnMessageInput = function() {
 };
 
 Conversation.prototype.handleSubmitOnMessageForm = function() {
-  this.view.messageform.off('submit');
-
   this.view.messageform.submit(
     function(e) {
       e.preventDefault();
@@ -114,14 +108,24 @@ Conversation.prototype.runMessages = function(datawith, offset) {
       if (url == actualUrl) {
         that.view.removeSelectDialog();
 
-        that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
-        that.handleClickOnMoreMessages();
-        that.handleScrollOnMessageBlock();
+        if ($(that.view.moremessages).length) {
+          that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);          
+        } else {
+          that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
 
-        that.view.showMessageForm(datawith);
-        that.handleEnterKeyOnMessageForm();
-        that.handleClickOnMessageInput();
-        that.handleSubmitOnMessageForm();
+          that.handleClickOnMoreMessages();
+          that.handleScrollOnMessageBlock();
+        }
+
+        if ($(that.view.messageform).length) {
+          that.view.showMessageForm(datawith);        
+        } else {
+          that.view.showMessageForm(datawith);
+
+          that.handleEnterKeyOnMessageForm();
+          that.handleClickOnMessageInput();
+          that.handleSubmitOnMessageForm();
+        }
 
         that.view.showMessages(data);
 

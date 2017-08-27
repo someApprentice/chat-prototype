@@ -4,6 +4,13 @@ function Controller(contacts, conversation) {
 
   this.contacts.handleEnterKeyOnSearchForm();
   this.contacts.handleSubmitOnSearchForm(this.conversation.runMessages.bind(this.conversation));
+
+  this.conversation.handleClickOnMoreMessages();
+  this.conversation.handleScrollOnMessageBlock();
+
+  this.conversation.handleEnterKeyOnMessageForm();
+  this.conversation.handleClickOnMessageInput();
+  this.conversation.handleSubmitOnMessageForm();
 }
 
 function Backend() {
