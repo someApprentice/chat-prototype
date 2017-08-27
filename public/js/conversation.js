@@ -4,6 +4,8 @@ function Conversation(backend, view) {
 
   this.timeout;
   this.t = 500;
+
+  this.token = Cookies.get('token');
 }
 
 Conversation.prototype.handleScrollOnMessageBlock = function() {
@@ -67,7 +69,7 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
 
       var to = $(that.view.messageform).attr('data-send-to'),
           message =  $(that.view.messagebox).val(),
-          token = that.view.token;
+          token = $(that.view.token).val();
 
       if (message != '') {
         that.backend.postMessage(to, message, token).then(
@@ -117,9 +119,9 @@ Conversation.prototype.runMessages = function(datawith, offset) {
         }
 
         if ($(that.view.messageform).length) {
-          that.view.showMessageForm(datawith);        
+          that.view.showMessageForm(datawith, that.token);        
         } else {
-          that.view.showMessageForm(datawith);
+          that.view.showMessageForm(datawith, that.token);
 
           that.handleEnterKeyOnMessageForm();
           that.handleClickOnMessageInput();
@@ -206,11 +208,10 @@ function ConversationView() {
 
   this.messageform = $('.message-form', this.conversation);
   this.messagebox = $('textarea[name="message"]', this.messageform);
+  this.token = $('input[name="token"]', this.messageform);
   this.submit = $('input[type="submit"]', this.messageform);
 
   this.selectDialog = $('.select-dialog', this.conversation);
-
-  this.token = Cookies.get('token');
 }
 
 ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, count, totalCount) {
@@ -235,16 +236,16 @@ ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, c
   }
 };
 
-ConversationView.prototype.showMessageForm = function(to) {
+ConversationView.prototype.showMessageForm = function(to, token) {
   if ($(this.messageform).length) {
 
     $(this.messageform).attr('action', 'send.php?to=' + to);
     $(this.messageform).attr('data-send-to', to);
-    $('input[name="token"]', this.messageform).val(this.token);
+    $('input[name="token"]', this.messageform).val(token);
   } else {
     var data = {
       to: to,
-      token: this.token
+      token: token
     };
 
     var template = $('#message-form-template').html();
