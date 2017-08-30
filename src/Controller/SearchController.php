@@ -20,7 +20,7 @@ class SearchController extends Controller
         $this->view = $view;
     }
 
-    public function search($apiMode = false)
+    public function search()
     {
         $logged = $this->authController->getLogged();
 
@@ -30,45 +30,14 @@ class SearchController extends Controller
 
                 $results = $this->database->searchUsers($query);
 
-                if ($apiMode) {
-                    $users = array();
+                $contacts = $results;
 
-                    foreach ($results as $key => $result) {
-                        $users[] = array(
-                            'id' => $result->getId(),
-                            'name' => $result->getName()
-                        );
-                    }
-
-                    echo json_encode($users, \JSON_FORCE_OBJECT);
-                } else {
-                    $contacts = $results;
-
-                    $this->view->renderConversationPage(compact('logged', 'query', 'contacts'));
-                }
+                $this->view->renderConversationPage(compact('logged', 'query', 'contacts'));
             } else {
-                if ($apiMode) {
-                    header('HTTP/1.1 400 Bad Request');
-
-                    $json['status'] = 'Error';
-                    $json['error'] = 'No search query';
-
-                    echo json_encode($json, \JSON_FORCE_OBJECT);
-                } else {
-                    throw new \Exception("No search query");
-                }
+                throw new \Exception("No search query");
             }
         } else {
-            if ($apiMode) {
-                header('HTTP/1.1 401 Unauthorized');
-
-                $json['status'] = 'Error';
-                $json['error'] = "You are not logged.";
-
-                echo json_encode($json, \JSON_FORCE_OBJECT);
-            } else {
-                throw new \Exception("You are not logged."); 
-            }
+            throw new \Exception("You are not logged."); 
         }
     }
 }

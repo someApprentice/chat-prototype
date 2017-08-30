@@ -34,7 +34,7 @@ class ConversationController extends Controller
         $this->view->renderConversationPage(compact('logged', 'contacts', 'messages'));
     }
 
-    public function send($apiMode = false)
+    public function send()
     {
         $logged = $this->authController->getLogged();
 
@@ -65,57 +65,26 @@ class ConversationController extends Controller
                                     $this->database->addUserContact($to, $logged->getId());
                                 }
 
-                                if ($apiMode) {
-                                    $json['status'] = 'Ok';
-
-                                    echo json_encode($json, \JSON_FORCE_OBJECT);
-                                } else {
-                                    $this->redirect("/conversation.php?with={$to}");
-
-                                    die();
-                                }
-                            }
-                        } else {
-                            if ($apiMode) {
-                                header('HTTP/1.1 400 Bad Request');
-
-                                $json['status'] = 'Error';
-                                $json['error'] = 'Invalid token';
-                            } else {
-                                $this->redirect();
+                                $this->redirect("/conversation.php?with={$to}");
 
                                 die();
                             }
+                        } else {
+                            $this->redirect();
+
+                            die();
                         }
                     }
                 } else {
-                    if ($apiMode) {
-                        header('HTTP/1.1 400 Bad Request');
-
-                        $json['status'] = 'Error';
-                        $json['error'] = 'No such user id';
-
-                        echo json_encode($json, \JSON_FORCE_OBJECT);
-                    } else {
-                        throw new \Exception("No such user id");
-                    }
+                    throw new \Exception("No such user id");
                 }
             }
         } else {
-            if ($apiMode) {
-                header('HTTP/1.1 401 Unauthorized');
-
-                $json['status'] = 'Error';
-                $json['error'] = "You are not logged.";
-
-                echo json_encode($json, \JSON_FORCE_OBJECT);
-            } else {
-                throw new \Exception("You are not logged."); 
-            }
+            throw new \Exception("You are not logged."); 
         }
     }
 
-    public function getContacts($apiMode = false)
+    public function getContacts()
     {
         $logged = $this->authController->getLogged();
 
@@ -124,36 +93,13 @@ class ConversationController extends Controller
         if ($logged) {
             $contacts = $this->database->getUserContacts($logged->getId());
 
-            if ($apiMode) {
-                $c = array();
-
-                foreach ($contacts as $contact) {
-                    $c[] = array(
-                        'id' => $contact->getId(),
-                        'name' => $contact->getName()
-                    );
-                }
-
-                echo json_encode($c, \JSON_FORCE_OBJECT);
-            } else {
-                return $contacts;
-            }
+            return $contacts;
         } else {
-            if ($apiMode) {
-                header('HTTP/1.1 401 Unauthorized');
-
-                $e = array();
-
-                $e['error'] = "You are not logged.";
-
-                echo json_encode($e, \JSON_FORCE_OBJECT);
-            } else {
-                throw new \Exception("You are not logged."); 
-            }
+            throw new \Exception("You are not logged."); 
         }
     }
 
-    public function getMessages($apiMode = false) {
+    public function getMessages() {
         $logged = $this->authController->getLogged();
 
         $messages = array();
@@ -175,54 +121,15 @@ class ConversationController extends Controller
                     $messages['totalCount'] = $count;
                     $messages['messages'] = $m;
 
-                    if ($apiMode) {
-                        $m = array();
-
-                        foreach ($messages['messages'] as $message) {
-                            $m[] = array(
-                                'id' => $message->getId(),
-                                'author' => $message->getAuthor()->getName(),
-                                'authorID' => $message->getAuthor()->getId(),
-                                'receiver' => $message->getReceiver()->getName(),
-                                'date' => $message->getDate(),
-                                'content' => $message->getContent()
-                            );
-                        }
-
-                        $messages['messages'] = $m;
-
-                        echo json_encode($messages, \JSON_FORCE_OBJECT);
-                    } else {
-                        return $messages;
-                    }
+                    return $messages;
                 } else {
-                    if ($apiMode) {
-                        header('HTTP/1.1 401 Unauthorized');
-
-                        $e = array();
-
-                        $e['error'] = "No such user id";
-
-                        echo json_encode($e, \JSON_FORCE_OBJECT);
-                    } else {
-                        throw new \Exception("No such user id");
-                    }
+                    throw new \Exception("No such user id");
                 }
             } else {
                 return $messages;
             }
         } else {
-            if ($apiMode) {
-                header('HTTP/1.1 401 Unauthorized');
-                
-                $e = array();
-
-                $e['error'] = "You are not logged.";
-
-                echo json_encode($c, \JSON_FORCE_OBJECT);
-            } else {
-                throw new \Exception("You are not logged."); 
-            }
+            throw new \Exception("You are not logged."); 
         }
     }
 }
