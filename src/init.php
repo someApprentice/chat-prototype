@@ -11,6 +11,7 @@ use App\Controller\AuthController;
 use App\Controller\ConversationController;
 use App\Controller\IndexController;
 use App\Controller\SearchController;
+use App\Controller\ApiController;
 
 set_exception_handler(function($e) {
     header('HTTP/1.1 500 Internal Server Error');
@@ -70,4 +71,8 @@ $container['IndexController'] = function ($c) {
 
 $container['SearchController'] = function ($c) {
     return new SearchController($c['AuthController'], $c['UserGateway'], $c['View']);
+};
+
+$container['ApiController'] = function ($c) {
+    return new ApiController($c['AuthController'], $c['MessageGateway']);
 };
