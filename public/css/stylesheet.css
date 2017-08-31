@@ -111,7 +111,7 @@ header {
 }
 
 .message .content {
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .message-container, .get-more-messages {
