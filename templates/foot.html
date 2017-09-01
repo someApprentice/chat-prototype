@@ -28,11 +28,9 @@
         </script>
 
         <script id="get-more-messages-template" type="text/template">
-            <% if (count < totalCount) { %>
-                <div class="get-more-messages">
-                    <label><a data-with="<%= datawith %>" data-offset="<%= offset %>" href="conversation.php?with=<%= datawith %>&offset=<%= offset %>">Получить больше сообщений</a></label>
-                </div>
-            <% } %>
+            <div class="get-more-messages">
+                <label><a data-with="<%= datawith %>" data-offset="<%= offset %>" data-count="<%= count %>" href="conversation.php?with=<%= datawith %>&offset=<%= offset %>">Получить больше сообщений</a></label>
+            </div>
         </script>
 
         <script id="messages-template" type="text/template">
@@ -40,7 +38,7 @@
                 <div data-message-id="<%= messages[key].id %>" class="message">
                     <span class="date"><%= messages[key].date %></span>
                     <div class="message-container">
-                        <div class="author"><a href="user.php?id=<%= messages[key].authorID %>"><%= messages[key].author %></a></div>
+                        <div class="author"><a href="user.php?id=<%= messages[key].authorID %>"><%= messages[key].author %> #<%= messages[key].id %></a></div>
                         <div class="content"><%= messages[key].content %></div>
                     </div>
                 </div>

@@ -9,28 +9,82 @@ function Conversation(backend, view) {
 }
 
 Conversation.prototype.handleScrollOnMessageBlock = function() {
+  var processing = false;
+
   this.view.messagescontainer.scroll(function() {
-    var quarterOfMessageBlock = $(this.view.messageblock).prop('scrollHeight') / 4;
+    var that = this;
 
-    if ($(this.view.moremessages).length) {
-      if ($(this.view.messageblock).scrollTop() < quarterOfMessageBlock) {
-        var datawith = $('a', this.view.moremessages).attr('data-with');
-        var offset = $('a', this.view.moremessages).attr('data-offset');
+    var quarterOfMessageBlock = $(that.view.messagescontainer).prop('scrollHeight') / 4;
 
-        this.refreshMessages(datawith, offset);
+    if ($(that.view.moremessages).length) {
+      if ($(that.view.messagescontainer).scrollTop() <= quarterOfMessageBlock) {
+        if (!processing) {
+          processing = true;
+
+          var url = window.location.href;
+
+          var datawith = $('a', that.view.moremessages).attr('data-with');
+          var offset = $('a', that.view.moremessages).attr('data-offset');
+          var count = $('a', that.view.moremessages).attr('data-count');
+
+          that.backend.getLastMessages(datawith, offset).then(
+            function(data) {
+              var actualUrl = window.location.href;
+
+              if (url === actualUrl) {
+                that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
+                that.view.showLastMessages(data['messages']);
+              }
+
+              processing = false;
+            },
+
+            function(jqXHR, textStatus) {
+              var template = $('#connection-error-template').html(); 
+              var html = ejs.render(template);
+
+              $('header').after(html);
+
+              that.backend.handleError(jqXHR, textStatus);
+            }
+          );
+        }
       }
     }
   }.bind(this));
-}
+};
 
 Conversation.prototype.handleClickOnMoreMessages = function() {
   $(this.view.moremessages).click(function(e) {
     e.preventDefault();
 
-    var datawith = $('a', this.view.moremessages).attr('data-with');
-    var offset = $('a', this.view.moremessages).attr('data-offset');
+    var that = this;
 
-    this.runMessages(datawith, offset);
+    var url = window.location.href;
+
+    var datawith = $('a', that.view.moremessages).attr('data-with');
+    var offset = $('a', that.view.moremessages).attr('data-offset');
+    var count = $('a', that.view.moremessages).attr('data-count');
+
+    that.backend.getLastMessages(datawith, offset).then(
+      function(data) {
+        var actualUrl = window.location.href;
+
+        if (url === actualUrl) {
+          that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
+          that.view.showLastMessages(data['messages']);
+        }
+      },
+
+      function(jqXHR, textStatus) {
+        var template = $('#connection-error-template').html(); 
+        var html = ejs.render(template);
+
+        $('header').after(html);
+
+        that.backend.handleError(jqXHR, textStatus);
+      }
+    );
   }.bind(this));
 };
 
@@ -102,7 +156,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
 
   var url = window.location.href;
   
-  that.backend.getMessages(datawith, offset).then(
+  that.backend.getLastMessages(datawith, offset).then(
     function(data) {
       var actualUrl = window.location.href;
 
@@ -128,7 +182,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
           that.handleSubmitOnMessageForm();
         }
 
-        that.view.showMessages(data);
+        that.view.showMessages(data['messages']);
 
         if (offset < 2) {
           var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
@@ -136,7 +190,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
           that.view.scrollDownMessages(scrollPosition, scrollPosition); 
         }
 
-        that.refreshMessages(datawith, offset);
+        that.refreshMessages(datawith, data.since);
       }
     },
 
@@ -153,16 +207,12 @@ Conversation.prototype.runMessages = function(datawith, offset) {
   );
 }
 
-Conversation.prototype.refreshMessages = function(datawith, offset) {
-  if (offset === undefined) {
-    offset = 1;
-  }
-
+Conversation.prototype.refreshMessages = function(datawith, since) {
   var that = this;
 
   var url = window.location.href;
 
-  that.backend.getMessages(datawith, offset).then(
+  that.backend.getNewMessages(datawith, since).then(
     function(data) {
       var actualUrl = window.location.href;
 
@@ -170,16 +220,13 @@ Conversation.prototype.refreshMessages = function(datawith, offset) {
       var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
 
       if (url == actualUrl) {
-        that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
-        that.handleClickOnMoreMessages();
-
-        that.view.showMessages(data);
+        that.view.showNewMessages(data['messages']);
         that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
         clearTimeout(that.timeout);
 
         that.timeout = setTimeout(function() {
-          that.refreshMessages(datawith, offset);
+          that.refreshMessages(datawith, data.since);
         }, that.t);
       }
     },
@@ -215,30 +262,36 @@ function ConversationView() {
 }
 
 ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, count, totalCount) {
-  var data = {
-    datawith: datawith,
-    offset: offset,
-    count: count,
-    totalCount: totalCount
-  };
+  if (count < totalCount) {
+    var data = {
+      datawith: datawith,
+      offset: offset,
+      count: count,
+      totalCount: totalCount
+    };
 
-  var template = $('#get-more-messages-template').html();
-  var html = ejs.render(template, data);
+    var template = $('#get-more-messages-template').html();
+    var html = ejs.render(template, data);
 
-  if ($(this.moremessages).length) {
-    $(this.moremessages).replaceWith(html);
-
-    this.moremessages = $('.get-more-messages');
+    if ($(this.moremessages).length) {
+      $('a', this.moremessages).attr('data-with', datawith);
+      $('a', this.moremessages).attr('data-offset', offset);
+      $('a', this.moremessages).attr('data-count', count);
+    } else {
+      $(this.messagescontainer).prepend(html);
+    }
   } else {
-    $(this.messagescontainer).prepend(html);
-
-    this.moremessages = $('.get-more-messages');
+    if ($(this.moremessages).length) {
+      $(this.moremessages).remove();
+    }
   }
+
+
+  this.moremessages = $('.get-more-messages');
 };
 
 ConversationView.prototype.showMessageForm = function(to, token) {
   if ($(this.messageform).length) {
-
     $(this.messageform).attr('action', 'send.php?to=' + to);
     $(this.messageform).attr('data-send-to', to);
     $('input[name="token"]', this.messageform).val(token);
@@ -262,11 +315,7 @@ ConversationView.prototype.showMessages = function(messages) {
   this.messages.remove();
 
   var data = {
-    datawith: messages['with'],
-    offset: messages['offset'],
-    count: messages['count'],
-    totalCount: messages['totalCount'],
-    messages: messages['messages']
+    messages: messages
   };
 
   var template = $('#messages-template').html();    
@@ -277,13 +326,39 @@ ConversationView.prototype.showMessages = function(messages) {
   this.messages = $('.message');
 };
 
+ConversationView.prototype.showLastMessages = function(messages) {
+  var data = {
+    messages: messages
+  };
+
+  var template = $('#messages-template').html();    
+  var html = ejs.render(template, data);
+
+  $(this.messageblock).prepend(html);
+
+  this.messages = $('.message');
+};
+
+ConversationView.prototype.showNewMessages = function(messages) {
+  var data = {
+    messages: messages
+  };
+
+  var template = $('#messages-template').html();    
+  var html = ejs.render(template, data);
+
+  $(this.messageblock).append(html);
+
+  this.messages = $('.message');
+};
+
 ConversationView.prototype.removeSelectDialog = function() {
   if ($(this.selectDialog).length) {
     $(this.selectDialog).remove();
 
     this.selectDialog = $('.select-dialog');
   }
-}
+};
 
 // may b' there is some better way
 ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollHeight) {  

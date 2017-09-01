@@ -5,8 +5,10 @@ function Controller(contacts, conversation) {
   this.contacts.handleEnterKeyOnSearchForm();
   this.contacts.handleSubmitOnSearchForm(this.conversation.runMessages.bind(this.conversation));
 
-  this.conversation.handleClickOnMoreMessages();
-  this.conversation.handleScrollOnMessageBlock();
+  if ($(this.conversation.view.moremessages).length != 0) {
+    this.conversation.handleClickOnMoreMessages();
+    this.conversation.handleScrollOnMessageBlock();
+  }
 
   this.conversation.handleEnterKeyOnMessageForm();
   this.conversation.handleClickOnMessageInput();
@@ -33,7 +35,7 @@ Backend.prototype.searchContacts = function(query) {
   );
 
   return promise;
-}
+};
 
 Backend.prototype.getMessages = function(datawith, offset) {
   if (offset === undefined) {
@@ -45,6 +47,34 @@ Backend.prototype.getMessages = function(datawith, offset) {
     {
       with: datawith,
       offset: offset
+    }
+  );
+
+  return promise;
+};
+
+Backend.prototype.getLastMessages= function(datawith, offset) {
+  if (offset === undefined) {
+    offset = 1;
+  }
+  
+  var promise = $.get(
+    'api/v1/getlastmessages.php',
+    {
+      with: datawith,
+      offset: offset
+    }
+  );
+
+  return promise;
+};
+
+Backend.prototype.getNewMessages = function(datawith, since) {  
+  var promise = $.get(
+    'api/v1/getnewmessages.php',
+    {
+      with: datawith,
+      since: since
     }
   );
 

@@ -3,6 +3,16 @@ namespace App\Model;
 
 class Helper
 {
+    //php7.0
+    public static function getCurrentTimeWithMicroseconds()
+    {
+        $date = new \DateTime("now");
+
+        $date = $date->format("Y-m-d H:i:s") . substr(microtime(), 1, 7);
+
+        return $date;
+    }
+
     public static function generateSalt()
     {
         $salt = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.*-^%$#@!?%&%_=+<>[]{}0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.*-^%$#@!?%&%_=+<>[]{}'), 0, 44);

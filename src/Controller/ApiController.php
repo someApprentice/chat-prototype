@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Controller\AuthController;
 use App\Model\Database\MessageGateway;
+use App\Model\Helper;
 use App\Model\Validations\Validator;
 use App\Model\Entity\Message;
 
@@ -126,6 +127,129 @@ class ApiController extends Controller
 
                     $messages['with'] = $with;
                     $messages['offset'] =  $offset;
+                    $messages['count'] = count($m);
+                    $messages['totalCount'] = $count;
+                    $messages['messages'] = $m;
+
+                    $m = array();
+
+                    foreach ($messages['messages'] as $message) {
+                        $m[] = array(
+                            'id' => $message->getId(),
+                            'author' => $message->getAuthor()->getName(),
+                            'authorID' => $message->getAuthor()->getId(),
+                            'receiver' => $message->getReceiver()->getName(),
+                            'date' => $message->getDate(),
+                            'content' => $message->getContent()
+                        );
+                    }
+
+                    $messages['messages'] = $m;
+
+                    echo json_encode($messages, \JSON_FORCE_OBJECT);
+                } else {
+                    header('HTTP/1.1 401 Unauthorized');
+
+                    $e = array();
+
+                    $e['error'] = "No such user id";
+
+                    echo json_encode($e, \JSON_FORCE_OBJECT);
+                }
+            }
+        } else {
+            header('HTTP/1.1 401 Unauthorized');
+            
+            $e = array();
+
+            $e['error'] = "You are not logged.";
+
+            echo json_encode($c, \JSON_FORCE_OBJECT);
+        }
+    }
+
+    public function getLastMessages() {
+        $logged = $this->authController->getLogged();
+
+        $messages = array();
+
+        if ($logged) {
+            if (isset($_GET['with']) and is_numeric($_GET['with'])) {
+                $with = $_GET['with'];
+
+                $count = $this->database->getMessagesCount($logged->getId(), $with);
+
+                if ($this->database->getUserByColumn('id', $with)) {
+                    $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
+                    
+                    $since = Helper::getCurrentTimeWithMicroseconds();
+
+                    $m = $this->database->getLastMessages($logged->getId(), $with, $offset);
+
+                    $messages['with'] = $with;
+                    $messages['since'] =  $since;
+                    $messages['offset'] =  $offset;
+                    $messages['count'] = count($m);
+                    $messages['totalCount'] = $count;
+                    $messages['messages'] = $m;
+
+                    $m = array();
+
+                    foreach ($messages['messages'] as $message) {
+                        $m[] = array(
+                            'id' => $message->getId(),
+                            'author' => $message->getAuthor()->getName(),
+                            'authorID' => $message->getAuthor()->getId(),
+                            'receiver' => $message->getReceiver()->getName(),
+                            'date' => $message->getDate(),
+                            'content' => $message->getContent()
+                        );
+                    }
+
+                    $messages['messages'] = $m;
+
+                    echo json_encode($messages, \JSON_FORCE_OBJECT);
+                } else {
+                    header('HTTP/1.1 401 Unauthorized');
+
+                    $e = array();
+
+                    $e['error'] = "No such user id";
+
+                    echo json_encode($e, \JSON_FORCE_OBJECT);
+                }
+            }
+        } else {
+            header('HTTP/1.1 401 Unauthorized');
+            
+            $e = array();
+
+            $e['error'] = "You are not logged.";
+
+            echo json_encode($c, \JSON_FORCE_OBJECT);
+        }
+    }
+
+    public function getNewMessages() {
+        $logged = $this->authController->getLogged();
+
+        $messages = array();
+
+        if ($logged) {
+            if (isset($_GET['with']) and is_numeric($_GET['with'])) {
+                $with = $_GET['with'];
+
+                $count = $this->database->getMessagesCount($logged->getId(), $with);
+
+                if ($this->database->getUserByColumn('id', $with)) {
+                    $since = (isset($_GET['since']) and is_string($_GET['since'])) ? $_GET['since'] : Helper::getCurrentTimeWithMicroseconds();
+                    
+                    $m = $this->database->getNewMessages($logged->getId(), $with, $since);
+
+                    $since = Helper::getCurrentTimeWithMicroseconds();
+
+                    $messages['with'] = $with;
+                    $messages['since'] =  $since;
                     $messages['count'] = count($m);
                     $messages['totalCount'] = $count;
                     $messages['messages'] = $m;
