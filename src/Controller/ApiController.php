@@ -136,9 +136,9 @@ class ApiController extends Controller
                     foreach ($messages['messages'] as $message) {
                         $m[] = array(
                             'id' => $message->getId(),
-                            'author' => $message->getAuthor()->getName(),
-                            'authorID' => $message->getAuthor()->getId(),
-                            'receiver' => $message->getReceiver()->getName(),
+                            'author' => $message->getAuthor(),
+                            'receiver' => $message->getReceiver(),
+                            'name' => $message->getName(),
                             'date' => $message->getDate(),
                             'content' => $message->getContent()
                         );
@@ -198,9 +198,9 @@ class ApiController extends Controller
                     foreach ($messages['messages'] as $message) {
                         $m[] = array(
                             'id' => $message->getId(),
-                            'author' => $message->getAuthor()->getName(),
-                            'authorID' => $message->getAuthor()->getId(),
-                            'receiver' => $message->getReceiver()->getName(),
+                            'author' => $message->getAuthor(),
+                            'receiver' => $message->getReceiver(),
+                            'name' => $message->getName(),
                             'date' => $message->getDate(),
                             'content' => $message->getContent()
                         );
@@ -259,9 +259,9 @@ class ApiController extends Controller
                     foreach ($messages['messages'] as $message) {
                         $m[] = array(
                             'id' => $message->getId(),
-                            'author' => $message->getAuthor()->getName(),
-                            'authorID' => $message->getAuthor()->getId(),
-                            'receiver' => $message->getReceiver()->getName(),
+                            'author' => $message->getAuthor(),
+                            'receiver' => $message->getReceiver(),
+                            'name' => $message->getName(),
                             'date' => $message->getDate(),
                             'content' => $message->getContent()
                         );

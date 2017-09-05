@@ -22,7 +22,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM messages WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND (date <= CURRENT_TIMESTAMP AND date >= CURRENT_TIMESTAMP - INTERVAL 7 * :offset DAY) ORDER BY date ASC");
+        $query = $pdo->prepare("SELECT messages.id, messages.author, messages.receiver, users.name, messages.date, .messages.content FROM messages INNER JOIN users ON messages.author = users.id WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND (date <= CURRENT_TIMESTAMP AND date >= CURRENT_TIMESTAMP - INTERVAL 7 * :offset DAY) ORDER BY date ASC");
         $query->bindValue(':author', $author);
         $query->bindValue(':receiver', $receiver);
         $query->bindValue(':offset', (int) $offset, \PDO::PARAM_INT);
@@ -33,8 +33,9 @@ class MessageGateway extends UserGateway
         foreach ($results as $key => $result) {
             $message = new Message();
             $message->setId($result['id']);
-            $message->setAuthor($this->getUserByColumn('id', $result['author']));
-            $message->setReceiver($this->getUserByColumn('id', $result['receiver']));
+            $message->setAuthor($result['author']);
+            $message->setReceiver($result['receiver']);
+            $message->setName($result['name']);
             $message->setDate($result['date']);
             $message->setContent($result['content']);
 
@@ -48,7 +49,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM messages WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND (date <= CURRENT_TIMESTAMP - INTERVAL 7 * (:offset - 1) DAY AND date >= CURRENT_TIMESTAMP - INTERVAL 7 * :offset DAY) ORDER BY date ASC");
+        $query = $pdo->prepare("SELECT messages.id, messages.author, messages.receiver, users.name, messages.date, .messages.content FROM messages INNER JOIN users ON messages.author = users.id WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND (date <= CURRENT_TIMESTAMP - INTERVAL 7 * (:offset - 1) DAY AND date >= CURRENT_TIMESTAMP - INTERVAL 7 * :offset DAY) ORDER BY date ASC");
         $query->bindValue(':author', $author);
         $query->bindValue(':receiver', $receiver);
         $query->bindValue(':offset', (int) $offset, \PDO::PARAM_INT);
@@ -59,8 +60,9 @@ class MessageGateway extends UserGateway
         foreach ($results as $key => $result) {
             $message = new Message();
             $message->setId($result['id']);
-            $message->setAuthor($this->getUserByColumn('id', $result['author']));
-            $message->setReceiver($this->getUserByColumn('id', $result['receiver']));
+            $message->setAuthor($result['author']);
+            $message->setReceiver($result['receiver']);
+            $message->setName($result['name']);
             $message->setDate($result['date']);
             $message->setContent($result['content']);
 
@@ -74,7 +76,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM messages WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND date >= :since ORDER BY date ASC");
+        $query = $pdo->prepare("SELECT messages.id, messages.author, messages.receiver, users.name, messages.date, .messages.content FROM messages INNER JOIN users ON messages.author = users.id WHERE ((author=:author AND receiver=:receiver) OR (author=:receiver AND receiver=:author)) AND date >= :since ORDER BY date ASC");
         $query->bindValue(':author', $author);
         $query->bindValue(':receiver', $receiver);
         $query->bindValue(':since', $since);
@@ -85,8 +87,9 @@ class MessageGateway extends UserGateway
         foreach ($results as $key => $result) {
             $message = new Message();
             $message->setId($result['id']);
-            $message->setAuthor($this->getUserByColumn('id', $result['author']));
-            $message->setReceiver($this->getUserByColumn('id', $result['receiver']));
+            $message->setAuthor($result['author']);
+            $message->setReceiver($result['receiver']);
+            $message->setName($result['name']);
             $message->setDate($result['date']);
             $message->setContent($result['content']);
 

@@ -9,6 +9,8 @@ class Message
 
     protected $receiver;
 
+    protected $name;
+
     protected $date;
 
     protected $content;
@@ -45,6 +47,18 @@ class Message
     public function setReceiver($receiver)
     {
         $this->receiver = $receiver;
+
+        return $this;
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
 
         return $this;
     }

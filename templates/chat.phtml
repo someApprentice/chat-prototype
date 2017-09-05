@@ -32,7 +32,7 @@
                                 <div id="message-<?= $message->getId() ?>" data-message-id="<?= $message->getId() ?>" class="message">
                                     <span class="date"><?= $message->getDate() ?></span>
                                     <div class="message-container">
-                                        <div class="author"><a href="user.php?id=<?= $message->getAuthor()->getId() ?>"><?= htmlspecialchars($message->getAuthor()->getName()) ?></a></div>
+                                        <div class="author"><a href="user.php?id=<?= $message->getAuthor() ?>"><?= htmlspecialchars($message->getName()) ?></a></div>
                                         <div class="content"><?= nl2br(htmlspecialchars($message->getContent())) ?></div>
                                     </div>
                                 </div>
