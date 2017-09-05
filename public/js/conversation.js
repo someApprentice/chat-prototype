@@ -34,6 +34,7 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
               if (url === actualUrl) {
                 that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
                 that.view.showLastMessages(data['messages']);
+                that.view.moveMessagesToBottom();
               }
 
               processing = false;
@@ -73,6 +74,7 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
         if (url === actualUrl) {
           that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
           that.view.showLastMessages(data['messages']);
+          that.view.moveMessagesToBottom();
         }
       },
 
@@ -183,6 +185,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
         }
 
         that.view.showMessages(data['messages']);
+        that.view.moveMessagesToBottom();
 
         if (offset < 2) {
           var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
@@ -358,6 +361,21 @@ ConversationView.prototype.removeSelectDialog = function() {
 
     this.selectDialog = $('.select-dialog');
   }
+};
+
+ConversationView.prototype.moveMessagesToBottom = function() {
+  var space = 0;
+
+  var messageContainerHeight = $(this.messagescontainer).outerHeight();
+  var messagesHeight = 0;
+
+  messagesHeight = $(this.messageblock).outerHeight(); 
+
+  if (messagesHeight < messageContainerHeight) {
+    space = messageContainerHeight - messagesHeight;
+
+    this.moremessages.css('padding-bottom', space);
+  } 
 };
 
 // may b' there is some better way
