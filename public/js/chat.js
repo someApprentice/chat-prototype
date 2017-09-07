@@ -95,13 +95,13 @@ Backend.prototype.postMessage = function(to, message, token) {
 
 Backend.prototype.handleError = function(jqXHR, textStatus) {
   if (textStatus == "timeout") {
-    throw new Error("Timeout");
+    console.log("Timeout");
   } else if (jqXHR.status == 0) {
-    throw new Error("No connection");
+    console.log("No connection");
   } else if (jqXHR.status == 500) {
-    throw new Error("Server error");
+    console.log("Server error");
   } else if (textStatus == "parsererror") {
-    throw new Error("JSON decode error");
+    console.log("JSON decode error");
   }
 }
 

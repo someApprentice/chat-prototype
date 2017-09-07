@@ -41,10 +41,7 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
             },
 
             function(jqXHR, textStatus) {
-              var template = $('#connection-error-template').html(); 
-              var html = ejs.render(template);
-
-              $('header').after(html);
+              that.view.showConnectionError();
 
               that.backend.handleError(jqXHR, textStatus);
             }
@@ -79,10 +76,7 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
       },
 
       function(jqXHR, textStatus) {
-        var template = $('#connection-error-template').html(); 
-        var html = ejs.render(template);
-
-        $('header').after(html);
+        that.view.showConnectionError();
 
         that.backend.handleError(jqXHR, textStatus);
       }
@@ -134,10 +128,21 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
           },
 
           function(jqXHR, textStatus) {
-            var template = $('#connection-error-template').html(); 
-            var html = ejs.render(template);
+            var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
+            var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
 
-            $('header').after(html);
+            var data = {
+              to: to,
+              content: message,
+              token: token
+            };
+
+            var template = $('#resend-message-template').html(); 
+            var html = ejs.render(template, data);
+
+            $(that.view.messageblock).append(html);
+
+            that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
             that.backend.handleError(jqXHR, textStatus);
           }
@@ -147,6 +152,32 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
       return false;
     }.bind(this)
   );
+};
+
+Conversation.prototype.handleClickOnResendMessage = function() {
+  var that = this;
+
+  $(this.view.messageblock).on('click', '.resend a', function(e) {
+    e.preventDefault();
+
+    var resendLink = $(this);
+
+    var to =  resendLink.attr('data-send-to'),
+        message = resendLink.parent().next('.content').text(),
+        token = resendLink.attr('data-token');
+
+    if (message != '') {
+      that.backend.postMessage(to, message, token).then(
+        function(data) {
+          resendLink.parents('.resend').remove();
+        },
+
+        function(jqXHR, textStatus) {
+          that.backend.handleError(jqXHR, textStatus);
+        }
+      );
+    }
+  });
 };
 
 Conversation.prototype.runMessages = function(datawith, offset) {
@@ -187,10 +218,12 @@ Conversation.prototype.runMessages = function(datawith, offset) {
         that.view.showMessages(data['messages']);
         that.view.moveMessagesToBottom();
 
+        that.handleClickOnResendMessage();
+
         if (offset < 2) {
           var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
 
-          that.view.scrollDownMessages(scrollPosition, scrollPosition); 
+          that.view.scrollDownMessages(scrollPosition, scrollPosition);
         }
 
         that.refreshMessages(datawith, data.since);
@@ -198,12 +231,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
     },
 
     function(jqXHR, textStatus) {
-      clearTimeout(that.timeout);
-
-      var template = $('#connection-error-template').html(); 
-      var html = ejs.render(template);
-
-      $('header').after(html);
+      that.view.showConnectionError();
 
       that.backend.handleError(jqXHR, textStatus);
     }
@@ -235,14 +263,15 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
     },
 
     function(jqXHR, textStatus) {
-      clearTimeout(that.timeout);
-
-      var template = $('#connection-error-template').html(); 
-      var html = ejs.render(template);
-
-      $('header').after(html);
+      that.view.showConnectionError();
 
       that.backend.handleError(jqXHR, textStatus);
+
+      clearTimeout(that.timeout);
+
+      that.timeout = setTimeout(function() {
+        that.refreshMessages(datawith, since);
+      }, that.t);
     }
   );
 };
@@ -353,6 +382,19 @@ ConversationView.prototype.showNewMessages = function(messages) {
   $(this.messageblock).append(html);
 
   this.messages = $('.message');
+};
+
+ConversationView.prototype.showConnectionError = function() {
+  if ($('.connection-error').length == 0) {
+    var template = $('#connection-error-template').html(); 
+    var html = ejs.render(template);
+
+    $('header').after(html);
+
+    var removeErrorTimeot = setTimeout(function() {
+      $('.connection-error').remove();
+    }, 5000);
+  }
 };
 
 ConversationView.prototype.removeSelectDialog = function() {

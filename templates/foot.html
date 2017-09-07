@@ -45,6 +45,15 @@
             <% } %>
         </script>
 
+        <script id="resend-message-template" type="text/template">
+            <div class="message resend">
+                <div class="message-container">
+                    <div><a data-send-to="<%= to %>" data-token="<%= token %>" href="">Переотправить</a></div>
+                    <div class="content"><%= content %></div>
+                </div>
+            </div>
+        </script>
+
         <script type="text/javascript" src="js/contacts.js"></script>
         <script type="text/javascript" src="js/conversation.js"></script>
         <script type="text/javascript" src="js/chat.js"></script>

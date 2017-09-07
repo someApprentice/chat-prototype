@@ -15,7 +15,7 @@ Contacts.prototype.handleEnterKeyOnSearchForm = function() {
       }
     }.bind(this)
   );
-}
+};
 
 Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
   this.view.searchform.submit(
@@ -36,10 +36,7 @@ Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
           },
 
           function(jqXHR, textStatus) {
-            var template = $('#connection-error-template').html(); 
-            var html = ejs.render(template);
-
-            $('header').after(html);
+            that.view.showConnectionError();
 
             that.backend.handleError(jqXHR, textStatus);
           }
@@ -82,26 +79,21 @@ Contacts.prototype.refreshContacts = function(runMessages) {
       that.view.showContacts(data);
       that.handleClickOnContact(runMessages);
 
+      clearTimeout(that.timeout);
+
+      that.timeout = setTimeout(function() {
+        that.refreshContacts(runMessages);
+      }, that.t);
+
       return data;
     },
 
     function(jqXHR, textStatus) {
-      clearTimeout(that.tiemout);
-
-      var template = $('#connection-error-template').html(); 
-      var html = ejs.render(template);
-
-      $('header').after(html);
+      that.view.showConnectionError();
 
       that.backend.handleError(jqXHR, textStatus);
     }
   );
-
-  clearTimeout(that.timeout);
-
-  that.timeout = setTimeout(function() {
-    that.refreshContacts(runMessages);
-  }, that.t);
 };
 
 
@@ -157,4 +149,17 @@ ContactsView.prototype.showContacts = function(contacts) {
     this.contactList = $('.contacts li');
     this.contactLinks = $('.contacts a');
   }
-}
+};
+
+ContactsView.prototype.showConnectionError = function() {
+  if ($('.connection-error').length == 0) {
+    var template = $('#connection-error-template').html(); 
+    var html = ejs.render(template);
+
+    $('header').after(html);
+
+    var removeErrorTimeot = setTimeout(function() {
+      $('.connection-error').remove();
+    }, 5000);
+  }
+};
