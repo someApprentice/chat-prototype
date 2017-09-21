@@ -16,6 +16,20 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `conference`
+--
+
+DROP TABLE IF EXISTS `conference`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `conference` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `contacts`
 --
 
@@ -25,9 +39,26 @@ DROP TABLE IF EXISTS `contacts`;
 CREATE TABLE `contacts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user` int(11) NOT NULL,
-  `contact` int(11) NOT NULL,
+  `contact` int(11) DEFAULT NULL,
+  `conference` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mbox`
+--
+
+DROP TABLE IF EXISTS `mbox`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mbox` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `messageID` int(11) NOT NULL,
+  `user` int(11) NOT NULL,
+  `conference` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +75,22 @@ CREATE TABLE `messages` (
   `date` datetime(6) DEFAULT NULL,
   `content` mediumtext COLLATE utf8_unicode_ci,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=451 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `participants`
+--
+
+DROP TABLE IF EXISTS `participants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `participants` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `conference` int(11) NOT NULL,
+  `user` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,4 +119,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-09-01 22:39:21
+-- Dump completed on 2017-09-21 15:53:49
