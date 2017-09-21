@@ -20,7 +20,7 @@ class Message
         return $this->id;
     }
 
-    public function setId($id)
+    public function setId(int $id)
     {
         $this->id = $id;
 
@@ -32,7 +32,7 @@ class Message
         return $this->author;
     }
 
-    public function setAuthor($author)
+    public function setAuthor(int $author)
     {
         $this->author = $author;
 
@@ -44,7 +44,7 @@ class Message
         return $this->receiver;
     }
 
-    public function setReceiver($receiver)
+    public function setReceiver(int $receiver)
     {
         $this->receiver = $receiver;
 
@@ -56,7 +56,7 @@ class Message
         return $this->name;
     }
 
-    public function setName($name)
+    public function setName(string $name)
     {
         $this->name = $name;
 
@@ -68,7 +68,7 @@ class Message
         return $this->date;
     }
 
-    public function setDate($date)
+    public function setDate($date) //string?
     {
         $this->date = $date;
 
@@ -80,7 +80,7 @@ class Message
         return $this->content;
     }
 
-    public function setContent($content)
+    public function setContent(string $content)
     {
         $this->content = $content;
 

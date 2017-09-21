@@ -28,9 +28,7 @@ class SearchController extends Controller
             if (isset($_GET['q']) and is_scalar($_GET['q'])) {
                 $query = $_GET['q'];
 
-                $results = $this->database->searchUsers($query);
-
-                $contacts = $results;
+                $contacts = $this->database->searchContacts($query);
 
                 $this->view->renderConversationPage(compact('logged', 'query', 'contacts'));
             } else {

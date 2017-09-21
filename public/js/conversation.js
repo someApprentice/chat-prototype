@@ -340,6 +340,8 @@ ConversationView.prototype.showMessageForm = function(to, token) {
 
     this.messageform = $('.message-form');
     this.messagebox = $('textarea[name="message"]', this.messageform);
+    this.token = $('input[name="token"]', this.messageform);
+    this.submit = $('input[type="submit"]', this.messageform);
   }
 };
 
@@ -416,7 +418,7 @@ ConversationView.prototype.moveMessagesToBottom = function() {
   if (messagesHeight < messageContainerHeight) {
     space = messageContainerHeight - messagesHeight;
 
-    this.moremessages.css('padding-bottom', space);
+    this.messages.first().css('padding-top', space);
   } 
 };
 

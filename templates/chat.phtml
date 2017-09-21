@@ -8,7 +8,7 @@
             <ul class="contacts">
                 <?php if (isset($contacts) and !empty($contacts)) : ?>
                     <?php foreach($contacts as $contact) : ?>
-                        <li class="<?= (isset($messages['with']) and $contact->getId() == $messages['with']) ? 'checked' : '' ?>"><a data-with="<?= $contact->getId() ?>" href="conversation.php?with=<?= $contact->getId() ?>"><label><?= $contact->getName() ?></label></a></li>
+                        <li class="<?= (isset($messages['with']) and $contact->getContact() == $messages['with']) ? 'checked' : '' ?>"><a data-with="<?= $contact->getContact() ?>" href="conversation.php?with=<?= $contact->getContact() ?>"><label><?= $contact->getName() ?></label></a></li>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <span class="contacts-not-found">Ничего не найдено</span>

@@ -36,7 +36,7 @@ class User
         return $this->id;
     }
 
-    public function setId($id)
+    public function setId(int $id)
     {
         $this->id = $id;
 
@@ -48,7 +48,7 @@ class User
         return $this->login;
     }
 
-    public function setLogin($login)
+    public function setLogin(string $login)
     {
         $this->login = $login;
 
@@ -60,7 +60,7 @@ class User
         return $this->name;
     }
 
-    public function setName($name)
+    public function setName(string $name)
     {
         $this->name = $name;
 
@@ -72,7 +72,7 @@ class User
         return $this->hash;
     }
 
-    public function setHash($hash)
+    public function setHash(string $hash)
     {
         $this->hash = $hash;
 
@@ -84,7 +84,7 @@ class User
         return $this->salt;
     }
 
-    public function setSalt($salt)
+    public function setSalt(string $salt)
     {
         $this->salt = $salt;
 

@@ -3,9 +3,23 @@ namespace App\Model\Database;
 
 use App\Model\Database\TableDataGateway;
 use App\Model\Entity\User;
+use App\Model\Entity\Contact;
 
 class UserGateway extends TableDataGateway
 {
+    public function addUser(User $user)
+    {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("INSERT INTO users (id, login, name, hash, salt) VALUES (NULL, :login, :name, :hash, :salt)");
+        $query->execute(array(
+            'login' => $user->getLogin(),
+            'name' => $user->getName(),
+            'hash' => $user->getHash(),
+            'salt' => getSalt()
+        ));
+    }
+
     public function getUserByColumn($column, $value)
     {
         $pdo = $this->pdo;
@@ -54,33 +68,43 @@ class UserGateway extends TableDataGateway
         }
 
         return $results;
-
     }
 
-    public function addUserContact($user, $contact)
+    public function addUserContact($user, $contact, $conference)
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("INSERT INTO contacts (id, user, contact) VALUES (NULL, :user, :contact)");
+        $query = $pdo->prepare("INSERT INTO contacts (id, user, contact, conference) VALUES (NULL, :user, :contact, :conference)");
         $query->bindValue(':user', $user);
         $query->bindValue(':contact', $contact);
+        $query->bindValue(':conference', $conference);
         $query->execute();
     }
 
+    // function removeContact() - contacts.removed = 1
+
     public function getUserContact($user, $contact)
     {
-
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM contacts WHERE user=:user and contact=:contact");
+        $query = $pdo->prepare("SELECT contacts.id, contacts.user, contacts.contact, contacts.conference, users.name FROM contacts INNER JOIN users ON contacts.contact = users.id WHERE user=:user and contact=:contact");
         $query->bindValue(':user', $user);
         $query->bindValue(':contact', $contact);
         $query->execute();
 
         $result = $query->fetch(\PDO::FETCH_ASSOC);
 
-        $contact = $this->getUserByColumn('id', $result['contact']);
+        if (empty($result)) {
+            return false;
+        }
 
+        $contact = new Contact();
+        $contact->setId($result['id']);
+        $contact->setUser($result['user']);
+        $contact->setContact($result['contact']);
+        $contact->setConference($result['conference']);
+        $contact->setName($result['name']);
+        
         return $contact;
     }
 
@@ -88,18 +112,41 @@ class UserGateway extends TableDataGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM contacts WHERE user=:id");
+        $query = $pdo->prepare("SELECT contacts.id, contacts.user, contacts.contact, contacts.conference, users.name FROM contacts INNER JOIN users ON contacts.contact = users.id WHERE user=:id");
         $query->bindValue(':id', $id);
         $query->execute();
 
-        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $contacts = $query->fetchAll(\PDO::FETCH_ASSOC);
 
-        foreach ($results as $key => $result) {
-            $user = $this->getUserByColumn('id', $result['contact']);
+        foreach ($contacts as $key => $result) {
+            $contact = new Contact();
+            $contact->setId($result['id']);
+            $contact->setUser($result['user']);
+            $contact->setContact($result['contact']);
+            $contact->setConference($result['conference']);
+            $contact->setName($result['name']);
 
-            $results[$key]  = $user;
+            $contacts[$key]  = $contact;
         }
 
-        return $results;
+        return $contacts;
+    }
+
+    //Only users, not conferences
+    public function searchContacts($name)
+    {
+        $users = $this->searchUsers($name);
+
+        $contacts = array();
+
+        foreach ($users as $user) {
+            $contact = new Contact();
+            $contact->setContact($user->getId());
+            $contact->setName($user->getName());
+
+            $contacts[] = $contact;
+        }
+
+        return $contacts;
     }
 }

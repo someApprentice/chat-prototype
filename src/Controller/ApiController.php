@@ -6,6 +6,9 @@ use App\Controller\AuthController;
 use App\Model\Database\MessageGateway;
 use App\Model\Helper;
 use App\Model\Validations\Validator;
+use App\Model\Entity\Conference;
+use App\Model\Entity\Participant;
+use App\Model\Entity\Contact;
 use App\Model\Entity\Message;
 
 class ApiController extends Controller
@@ -36,19 +39,56 @@ class ApiController extends Controller
                             $post['message'] = trim($post['message']);
 
                             if (!empty($post['message'])) {
+                                $contact = $this->database->getUserContact($logged->getId(), $to);
+
+                                if ($contact) {
+                                    $conference = $contact->getConference();
+
+                                    $participants = $this->database->getParticipants($conference);
+                                } else {
+                                    $conference = new Conference();
+
+                                    $participants = array();
+
+                                    $participants[] = new Participant();
+                                    $participants[0]->setUser($logged->getId());
+
+                                    $participants[] = new Participant();
+                                    $participants[1]->setUser($to);
+
+                                    $conference = $this->database->addConference($conference)->getId();
+
+                                    foreach ($participants as $key => $participant) {
+                                        $participant->setConference($conference);
+
+                                        $participants[$key] = $this->database->addParticipant($participant);
+                                    }
+
+                                    $this->database->addUserContact($logged->getId(), $to, $conference);
+                                }
+
                                 $message = new Message();
                                 $message->setAuthor($logged->getId());
                                 $message->setReceiver($to);
                                 $message->setContent($post['message']);
 
-                                $this->database->addMessage($message);
+                                $this->database->addMessage($message, $participants);
 
-                                if (!$this->database->getUserContact($logged->getId(), $to)) {
-                                    $this->database->addUserContact($logged->getId(), $to);
-                                }
+                                $contact = $this->database->getUserContact($to, $logged->getId());
 
-                                if (!$this->database->getUserContact($to, $logged->getId())) {
-                                    $this->database->addUserContact($to, $logged->getId());
+                                if ($contact) {
+                                    if ($contact->getConference() != $conference) {
+                                        header('HTTP/1.1 500 Internal Server Error');
+
+                                        $json['status'] = 'Error';
+                                        $json['error'] = "Some how conferences of contacts do not match";
+
+                                        echo json_encode($json, \JSON_FORCE_OBJECT);
+
+                                        die();
+                                    }
+                                } else {
+                                    $this->database->addUserContact($to, $logged->getId(), $conference);
                                 }
 
                                 $json['status'] = 'Ok';
@@ -92,7 +132,7 @@ class ApiController extends Controller
 
             foreach ($contacts as $contact) {
                 $c[] = array(
-                    'id' => $contact->getId(),
+                    'id' => $contact->getContact(),
                     'name' => $contact->getName()
                 );
             }
@@ -112,29 +152,37 @@ class ApiController extends Controller
     public function getMessages() {
         $logged = $this->authController->getLogged();
 
+        $m = array();
+
         $messages = array();
+
+        $totalCount = 0;
 
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
-                $count = $this->database->getMessagesCount($logged->getId(), $with);
-
                 if ($this->database->getUserByColumn('id', $with)) {
                     $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
 
-                    $m = $this->database->getMessages($logged->getId(), $with, $offset);
+                    $contact = $this->database->getUserContact($logged->getId(), $with);
 
-                    $messages['with'] = $with;
-                    $messages['offset'] =  $offset;
-                    $messages['count'] = count($m);
-                    $messages['totalCount'] = $count;
-                    $messages['messages'] = $m;
+                    if ($contact) {
+                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
 
-                    $m = array();
+                        $messages = $this->database->getMessages($logged->getId(), $contact->getConference(), $offset);
+                    }
 
-                    foreach ($messages['messages'] as $message) {
-                        $m[] = array(
+                    $m['with'] = $with;
+                    $m['offset'] =  $offset;
+                    $m['count'] = count($messages);
+                    $m['totalCount'] = $totalCount;
+                    $m['messages'] = $messages;
+
+                    $messages = array();
+
+                    foreach ($m['messages'] as $message) {
+                        $messages[] = array(
                             'id' => $message->getId(),
                             'author' => $message->getAuthor(),
                             'receiver' => $message->getReceiver(),
@@ -144,15 +192,15 @@ class ApiController extends Controller
                         );
                     }
 
-                    $messages['messages'] = $m;
+                    $m['messages'] = $messages;
 
-                    echo json_encode($messages, \JSON_FORCE_OBJECT);
+                    echo json_encode($m, \JSON_FORCE_OBJECT);
                 } else {
                     header('HTTP/1.1 401 Unauthorized');
 
                     $e = array();
 
-                    $e['error'] = "No such user id";
+                    $e['error'] = "No such contact";
 
                     echo json_encode($e, \JSON_FORCE_OBJECT);
                 }
@@ -171,32 +219,40 @@ class ApiController extends Controller
     public function getLastMessages() {
         $logged = $this->authController->getLogged();
 
+        $m = array();
+
         $messages = array();
+
+        $totalCount = 0;
 
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
-                $count = $this->database->getMessagesCount($logged->getId(), $with);
-
                 if ($this->database->getUserByColumn('id', $with)) {
                     $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
-                    
+
                     $since = Helper::getCurrentTimeWithMicroseconds();
 
-                    $m = $this->database->getLastMessages($logged->getId(), $with, $offset);
+                    $contact = $this->database->getUserContact($logged->getId(), $with);
 
-                    $messages['with'] = $with;
-                    $messages['since'] =  $since;
-                    $messages['offset'] =  $offset;
-                    $messages['count'] = count($m);
-                    $messages['totalCount'] = $count;
-                    $messages['messages'] = $m;
+                    if ($contact) {
+                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
 
-                    $m = array();
+                        $messages = $this->database->getLastMessages($logged->getId(), $contact->getConference(), $offset);
+                    }
 
-                    foreach ($messages['messages'] as $message) {
-                        $m[] = array(
+                    $m['with'] = $with;
+                    $m['since'] =  $since;
+                    $m['offset'] =  $offset;
+                    $m['count'] = count($messages);
+                    $m['totalCount'] = $totalCount;
+                    $m['messages'] = $messages;
+
+                    $messages = array();
+
+                    foreach ($m['messages'] as $message) {
+                        $messages[] = array(
                             'id' => $message->getId(),
                             'author' => $message->getAuthor(),
                             'receiver' => $message->getReceiver(),
@@ -206,9 +262,9 @@ class ApiController extends Controller
                         );
                     }
 
-                    $messages['messages'] = $m;
+                    $m['messages'] = $messages;
 
-                    echo json_encode($messages, \JSON_FORCE_OBJECT);
+                    echo json_encode($m, \JSON_FORCE_OBJECT);
                 } else {
                     header('HTTP/1.1 401 Unauthorized');
 
@@ -233,31 +289,39 @@ class ApiController extends Controller
     public function getNewMessages() {
         $logged = $this->authController->getLogged();
 
+        $m = array();
+
         $messages = array();
+
+        $totalCount = 0;
 
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
-                $count = $this->database->getMessagesCount($logged->getId(), $with);
-
                 if ($this->database->getUserByColumn('id', $with)) {
                     $since = (isset($_GET['since']) and is_string($_GET['since'])) ? $_GET['since'] : Helper::getCurrentTimeWithMicroseconds();
-                    
-                    $m = $this->database->getNewMessages($logged->getId(), $with, $since);
+
+                    $contact = $this->database->getUserContact($logged->getId(), $with);
+
+                    if ($contact) {
+                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+
+                        $messages = $this->database->getNewMessages($logged->getId(), $contact->getConference(), $since);
+                    }
 
                     $since = Helper::getCurrentTimeWithMicroseconds();
 
-                    $messages['with'] = $with;
-                    $messages['since'] =  $since;
-                    $messages['count'] = count($m);
-                    $messages['totalCount'] = $count;
-                    $messages['messages'] = $m;
+                    $m['with'] = $with;
+                    $m['since'] =  $since;
+                    $m['count'] = count($messages);
+                    $m['totalCount'] = $totalCount;
+                    $m['messages'] = $messages;
 
-                    $m = array();
+                    $messages = array();
 
-                    foreach ($messages['messages'] as $message) {
-                        $m[] = array(
+                    foreach ($m['messages'] as $message) {
+                        $messages[] = array(
                             'id' => $message->getId(),
                             'author' => $message->getAuthor(),
                             'receiver' => $message->getReceiver(),
@@ -267,9 +331,9 @@ class ApiController extends Controller
                         );
                     }
 
-                    $messages['messages'] = $m;
+                    $m['messages'] = $messages;
 
-                    echo json_encode($messages, \JSON_FORCE_OBJECT);
+                    echo json_encode($m, \JSON_FORCE_OBJECT);
                 } else {
                     header('HTTP/1.1 401 Unauthorized');
 
@@ -295,17 +359,17 @@ class ApiController extends Controller
     {
         $logged = $this->authController->getLogged();
 
+        $users = array();
+
         if ($logged) {
             if (isset($_GET['q']) and is_scalar($_GET['q'])) {
                 $query = $_GET['q'];
 
-                $results = $this->database->searchUsers($query);
-
-                $users = array();
+                $results = $this->database->searchContacts($query);
 
                 foreach ($results as $key => $result) {
                     $users[] = array(
-                        'id' => $result->getId(),
+                        'id' => $result->getContact(),
                         'name' => $result->getName()
                     );
                 }
