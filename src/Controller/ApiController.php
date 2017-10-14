@@ -4,8 +4,10 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Controller\AuthController;
 use App\Model\Database\MessageGateway;
+use App\Model\Crypter;
 use App\Model\Helper;
-use App\Model\Validations\Validator;
+use App\Model\Validations\AuthValidator as Validator;
+use App\Model\Entity\User;
 use App\Model\Entity\Conference;
 use App\Model\Entity\Participant;
 use App\Model\Entity\Contact;
@@ -17,10 +19,13 @@ class ApiController extends Controller
 
     protected $database;
 
-    public function __construct(AuthController $authController, MessageGateway $database)
+    protected $crypter;
+
+    public function __construct(AuthController $authController, MessageGateway $database, Crypter $crypter)
     {
         $this->authController = $authController;
         $this->database = $database;
+        $this->crypter = $crypter;
     }
 
     public function send()
@@ -96,8 +101,12 @@ class ApiController extends Controller
                                 echo json_encode($json, \JSON_FORCE_OBJECT);
                             }
                         } else {
+                            header('HTTP/1.1 400 Bad Request');
+
                             $json['status'] = 'Error';
                             $json['error'] = 'Invalid token';
+
+                            echo json_encode($json, \JSON_FORCE_OBJECT);
                         }
                     }
                 } else {
@@ -392,4 +401,228 @@ class ApiController extends Controller
             echo json_encode($json, \JSON_FORCE_OBJECT);
         }
     }
+
+    public function getPrivateKey()
+    {
+        $logged = $this->authController->getLogged();
+
+        if ($logged) {
+            $privateKey = $this->database->getPrivateKey($logged->getId());
+
+            if ($privateKey) {
+                echo json_encode($privateKey, \JSON_FORCE_OBJECT);
+            } else {
+                header('HTTP/1.1 400 Bad Request');
+
+                $json['status'] = 'Error';
+                $json['error'] = "No such key.";
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            }
+        } else {
+            header('HTTP/1.1 401 Unauthorized');
+
+            $json['status'] = 'Error';
+            $json['error'] = "You are not logged.";
+
+            echo json_encode($json, \JSON_FORCE_OBJECT);
+        }
+    }
+
+    public function getPublicKeys()
+    {
+        $logged = $this->authController->getLogged();
+
+        if ($logged) {
+            if (isset($_GET['id']) and is_numeric($_GET['id'])) {
+                $publicKeys = array();
+
+                $publicKeys[] = $this->database->getPublicKey($logged->getId())['publicKey'];
+                $publicKeys[] = $this->database->getPublicKey($_GET['id'])['publicKey'];
+
+                foreach ($publicKeys as $key => $value) {
+                    if (empty($publicKeys[$key])) {
+                        $publicKeys[$key] = array(
+                            'status' => 'Error',
+                            'error' => 'No such key.'
+                        );
+                    }
+                }
+
+                echo json_encode($publicKeys, \JSON_FORCE_OBJECT);
+            } else {
+                header('HTTP/1.1 400 Bad Request');
+
+                $json['status'] = 'Error';
+                $json['error'] = "No id query.";
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            }
+        } else {
+            header('HTTP/1.1 401 Unauthorized');
+
+            $json['status'] = 'Error';
+            $json['error'] = "You are not logged.";
+
+            echo json_encode($json, \JSON_FORCE_OBJECT);
+        }
+    }
+
+    public function register()
+    {
+        if ($this->authController->getLogged()) {
+            $json['status'] = 'Error';
+            $json['errors'] = array('login' => 'You already loged.');
+            
+            echo json_encode($json, \JSON_FORCE_OBJECT);
+        }
+
+
+        $post = array();
+        $errors = array();
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $post['login'] = (isset($_POST['login']) and is_scalar($_POST['login'])) ? $_POST['login'] : '';
+            $post['name'] = (isset($_POST['name']) and is_scalar($_POST['name'])) ? $_POST['name'] : '';
+            $post['password'] = (isset($_POST['password']) and is_scalar($_POST['password'])) ? $_POST['password'] : '';
+            $post['retryPassword'] = (isset($_POST['retryPassword']) and is_scalar($_POST['retryPassword'])) ? $_POST['retryPassword']: '';
+
+            $post['login'] = trim($post['login']);
+            $post['name'] = trim($post['name']);
+            $post['password'] = trim($post['password']);
+            $post['retryPassword'] = trim($post['retryPassword']);
+
+            $errors = Validator::validateRegistrationPost($post);
+
+            if ($this->database->getUserByColumn('login', $post['login'])) {
+               $errors['login'] = "Login already exist";
+            }
+
+            if (empty($errors)) {
+                $salt = Helper::generateSalt();
+                $hash = Helper::generateHash($post['password'], $salt);
+
+                $user = new User();
+                $user->setLogin($post['login']);
+                $user->setName($post['name']);
+                $user->setHash($hash);
+                $user->setSalt($salt);
+
+                $user = $this->database->addUser($user);
+
+                $this->crypter->generateKeys($post['login'], $post['password']);
+
+                $privateKey = $this->crypter->getPrivateKey($post['login']);
+                $publicKey = $this->crypter->getPublicKey($post['login']);
+
+                $this->database->addPrivateKey($user->getId(), $privateKey);
+                $this->database->addPublicKey($user->getId(), $publicKey);
+
+                $this->login();
+            } else {
+                $json['status'] = 'Error';
+                $json['errors'] = $errors;
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            }
+        }
+    }
+
+    public function login()
+    {
+        if ($this->authController->getLogged()) {
+            $json['status'] = 'Error';
+            $json['errors'] = array('login' => 'You already loged.');
+            
+            echo json_encode($json, \JSON_FORCE_OBJECT);
+        }
+
+        $post = array();
+        $errors = array();
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $post['login'] = (isset($_POST['login']) and is_scalar($_POST['login'])) ? $_POST['login'] : '';
+            $post['password'] = (isset($_POST['password']) and is_scalar($_POST['password'])) ? $_POST['password'] : '';
+            
+            $post['login'] = trim($post['login']);
+            $post['password'] = trim($post['password']);
+
+            $errors = Validator::validateLoginPost($post);
+
+            if (empty($errors)) {
+                $user = $this->database->getUserByColumn('login', $post['login']);
+
+                if ($user) {
+                    if ($user->getHash() == Helper::generateHash($post['password'], $user->getSalt())) {
+                        $json = array(
+                            'status' => 'Ok',
+                            'user' => array(
+                                'id' => $user->getId(),
+                                'name' => $user->getName(),
+                                'hash' => $user->getHash(),
+                                'token' => Helper::generateToken()
+                            )
+                        );
+
+                        echo json_encode($json, \JSON_FORCE_OBJECT);
+                    } else {
+                        $errors['login'] = "No matches found";
+
+                        $json['status'] = 'Error';
+                        $json['errors'] = $errors;
+
+                        
+                        echo json_encode($json, \JSON_FORCE_OBJECT);
+                    }
+                } else {
+                    $errors['login'] = "No matches found";
+
+                    $json['status'] = 'Error';
+                    $json['errors'] = $errors;
+
+                    
+                    echo json_encode($json, \JSON_FORCE_OBJECT);
+                }
+            } else {
+                $json['status'] = 'Error';
+                $json['errors'] = $errors;
+
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            }
+        }
+    }
+
+    public function getLogged()
+    {
+        if (isset($_COOKIE['id'])) {
+            $user = $this->database->getUserByColumn('id', $_COOKIE['id']);
+
+            if (isset($_COOKIE['token'])) {
+                if ($user->getHash() == $_COOKIE['hash']) {
+                    $json = array(
+                        'status' => 'Ok',
+                        'id' => $user->getId(),
+                        'name' => $user->getName(),
+                        'hash' => $user->getHash()
+                    );
+
+                    echo json_encode($json, \JSON_FORCE_OBJECT);
+                } else {
+                    $json['status'] = 'Error';
+                    $json['error'] = "Hashes doesn't match";
+                }
+            } else {
+                $json['status'] = 'Error';
+                $json['error'] = 'Invalid token';
+
+                echo json_encode($json, \JSON_FORCE_OBJECT);
+            }
+        } else {
+            $json['status'] = 'Error';
+            $json['error'] = 'No such id';
+
+            echo json_encode($json, \JSON_FORCE_OBJECT);
+        }
+    }   
 }

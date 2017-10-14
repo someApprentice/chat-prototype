@@ -32,7 +32,7 @@ class MessageGateway extends UserGateway
             ));
         }
 
-        //return $message;
+        return $message;
     }
 
     public function getMessages($user, $conference, $offset = 1)
@@ -186,7 +186,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM participants WHERE id=:id");
+        $query = $pdo->prepare("SELECT participants.id, participants.conference, participants.user, users.login FROM participants INNER JOIN users ON participants.user = users.id WHERE id=:id");
         $query->bindValue(':id', $id);
         $query->execute();
 
@@ -200,6 +200,7 @@ class MessageGateway extends UserGateway
         $participant->setId($result['id']);
         $participant->setConference($result['conference']);
         $participant->setUser($result['user']);
+        $participant->setLogin($result['login']);
 
         return $participant;
     }
@@ -208,7 +209,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT * FROM participants WHERE conference=:conference");
+        $query = $pdo->prepare("SELECT participants.id, participants.conference, participants.user, users.login FROM participants INNER JOIN users ON participants.user = users.id WHERE conference=:conference");
         $query->bindValue(':conference', $conference);
         $query->execute();
 
@@ -219,6 +220,7 @@ class MessageGateway extends UserGateway
             $participant->setId($result['id']);
             $participant->setConference($result['conference']);
             $participant->setUser($result['user']);
+            $participant->setLogin($result['login']);
 
             $results[$key] = $participant;
         }

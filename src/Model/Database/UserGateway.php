@@ -16,8 +16,14 @@ class UserGateway extends TableDataGateway
             'login' => $user->getLogin(),
             'name' => $user->getName(),
             'hash' => $user->getHash(),
-            'salt' => getSalt()
+            'salt' => $user->getSalt()
         ));
+
+        $id = $pdo->lastInsertId();
+
+        $user->setId($id);
+
+        return $user;
     }
 
     public function getUserByColumn($column, $value)
@@ -148,5 +154,49 @@ class UserGateway extends TableDataGateway
         }
 
         return $contacts;
+    }
+
+    public function addPrivateKey($user, $privateKey)
+    {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("INSERT INTO privateKeys (id, user, privateKey) VALUES (NULL, :user, :privateKey)");
+        $query->bindValue(':user', $user);
+        $query->bindValue(':privateKey', $privateKey);
+        $query->execute();
+    }
+
+    public function getPrivateKey($user) {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("SELECT * FROM privateKeys WHERE user=:user");
+        $query->bindValue(':user', $user);
+        $query->execute();
+
+        $result = $query->fetch(\PDO::FETCH_ASSOC);
+
+        return $result;
+    }
+
+    public function addPublicKey($user, $publicKey)
+    {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("INSERT INTO publicKeys (id, user, publicKey) VALUES (NULL, :user, :publicKey)");
+        $query->bindValue(':user', $user);
+        $query->bindValue(':publicKey', $publicKey);
+        $query->execute();
+    }
+
+    public function getPublicKey($user) {
+        $pdo = $this->pdo;
+
+        $query = $pdo->prepare("SELECT * FROM publicKeys WHERE user=:user");
+        $query->bindValue(':user', $user);
+        $query->execute();
+
+        $result = $query->fetch(\PDO::FETCH_ASSOC);
+
+        return $result;
     }
 }

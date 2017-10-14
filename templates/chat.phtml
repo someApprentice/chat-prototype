@@ -27,16 +27,32 @@
                 <?php endif; ?>
                 <div class="messages">
                     <?php if (isset($messages['with'])) : ?>
-                        <?php if (isset($messages['messages'])) : ?>
-                            <?php foreach ($messages['messages'] as $message) : ?>
-                                <div id="message-<?= $message->getId() ?>" data-message-id="<?= $message->getId() ?>" class="message">
-                                    <span class="date"><?= $message->getDate() ?></span>
-                                    <div class="message-container">
-                                        <div class="author"><a href="user.php?id=<?= $message->getAuthor() ?>"><?= htmlspecialchars($message->getName()) ?></a></div>
-                                        <div class="content"><?= nl2br(htmlspecialchars($message->getContent())) ?></div>
-                                    </div>
+                        <?php if (isset($messages['p'])) : ?>
+                            <?php if ($messages['p']['passphrase']) : ?>
+                                <?php if (isset($messages['messages'])) : ?>
+                                    <?php foreach ($messages['messages'] as $message) : ?>
+                                        <div id="message-<?= $message->getId() ?>" data-message-id="<?= $message->getId() ?>" class="message">
+                                            <span class="date"><?= $message->getDate() ?></span>
+                                            <div class="message-container">
+                                                <div class="author"><a href="user.php?id=<?= $message->getAuthor() ?>"><?= htmlspecialchars($message->getName()) ?></a></div>
+                                                <div class="content"><?= nl2br(htmlspecialchars($message->getContent())) ?></div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            <?php else : ?>
+                                <div class="enter-passphrase">
+                                    <form method="post" name="passphrase" data-with="<?= $messages['with'] ?>" data-offset="<?= $messages['offset'] ?>" action="conversation.php?with=<?= $messages['with'] ?>&offset=<?= $messages['offset']?>" class="passphrase-form">
+                                        <label>
+                                            Passphrase
+                                            <input type="password" name="passphrase" pattern="(.){6,128}" required>
+                                            <span class="passphrase-error">
+                                                <?= (isset($messages['p']['error']) ? $messages['p']['error'] : '' ) ?>
+                                            </span>
+                                        </label>
+                                    </form>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php else : ?>
                         <div class="select-dialog">Выбирите диалог</div>

@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Controller\Controller;
 use App\Controller\AuthController;
+use App\Model\Crypter;
 use App\Model\Database\MessageGateway;
 use App\Model\Validations\Validator;
 use App\Model\Entity\Conference;
@@ -17,12 +18,15 @@ class ConversationController extends Controller
 
     protected $database;
 
+    protected $crypter;
+
     protected $view;
 
-    public function __construct(AuthController $authController, MessageGateway $database, View $view)
+    public function __construct(AuthController $authController, MessageGateway $database, Crypter $crypter, View $view)
     {
         $this->authController = $authController;
         $this->database = $database;
+        $this->crypter = $crypter;
         $this->view = $view;
     }
 
@@ -32,9 +36,13 @@ class ConversationController extends Controller
 
         $contacts = $this->getContacts();
 
+        // if POST['passhrase']
+
         $messages = $this->getMessages();
 
         $this->view->renderConversationPage(compact('logged', 'contacts', 'messages'));
+
+        // else renderRequestPassphrase()
     }
 
     public function send()
@@ -45,7 +53,9 @@ class ConversationController extends Controller
             if (isset($_GET['to']) and is_numeric($_GET['to'])) {
                 $to = $_GET['to'];
 
-                if ($this->database->getUserByColumn('id', $to)) {
+                $to = $this->database->getUserByColumn('id', $to);
+
+                if ($to) {
                     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if (Validator::validateToken($_POST['token'])) {
                             $post['message'] = (isset($_POST['message']) and is_scalar($_POST['message'])) ? $_POST['message'] : '';
@@ -53,7 +63,7 @@ class ConversationController extends Controller
                             $post['message'] = trim($post['message']);
 
                             if (!empty($post['message'])) {
-                                $contact = $this->database->getUserContact($logged->getId(), $to);
+                                $contact = $this->database->getUserContact($logged->getId(), $to->getId());
 
                                 if ($contact) {
                                     $conference = $contact->getConference();
@@ -66,9 +76,11 @@ class ConversationController extends Controller
 
                                     $participants[] = new Participant();
                                     $participants[0]->setUser($logged->getId());
+                                    $participants[0]->setLogin($logged->getLogin());
 
                                     $participants[] = new Participant();
-                                    $participants[1]->setUser($to);
+                                    $participants[1]->setUser($to->getId());
+                                    $participants[1]->setLogin($to->getLogin());
 
                                     $conference = $this->database->addConference($conference)->getId();
 
@@ -78,27 +90,29 @@ class ConversationController extends Controller
                                         $participants[$key] = $this->database->addParticipant($participant);
                                     }
 
-                                    $this->database->addUserContact($logged->getId(), $to, $conference);
+                                    $this->database->addUserContact($logged->getId(), $to->getId(), $conference);
                                 }
+
+                                $encrypted = $this->crypter->encrypt($participants, $post['message']);
 
                                 $message = new Message();
                                 $message->setAuthor($logged->getId());
-                                $message->setReceiver($to);
-                                $message->setContent($post['message']);
+                                $message->setReceiver($to->getId());
+                                $message->setContent($encrypted);
 
                                 $this->database->addMessage($message, $participants);
 
-                                $contact = $this->database->getUserContact($to, $logged->getId());
+                                $contact = $this->database->getUserContact($to->getId(), $logged->getId());
 
                                 if ($contact) {
                                     if ($contact->getConference() != $conference) {
                                         throw new \Exception("Some how conferences of contacts do not match");
                                     }
                                 } else {
-                                    $this->database->addUserContact($to, $logged->getId(), $conference);
+                                    $this->database->addUserContact($to->getId(), $logged->getId(), $conference);
                                 }
 
-                                $this->redirect("/conversation.php?with={$to}");
+                                $this->redirect("/conversation.php?with={$to->getId()}");
 
                                 die();
                             }
@@ -151,9 +165,38 @@ class ConversationController extends Controller
                     $contact = $this->database->getUserContact($logged->getId(), $with);
 
                     if ($contact) {
-                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+                        if (isset($_POST['passphrase']) and is_scalar($_POST['passphrase'])) {
+                            $passphrase = $_POST['passphrase'];
 
-                        $messages = $this->database->getMessages($logged->getId(), $contact->getConference(), $offset);   
+                            $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+
+                            $messages = $this->database->getMessages($logged->getId(), $contact->getConference(), $offset);
+
+                            foreach ($messages as $key => $message) {
+                                $encrypted = $message->getContent();
+
+                                $decrypted = $this->crypter->decrypt($logged->getLogin(), $passphrase, $encrypted);
+
+                                if (empty($decrypted)) {
+                                    $m['p'] = array(
+                                        'passphrase' => false,
+                                        'error' => 'Decrypted data parsing error; Probably, bad passphrase.'
+                                    );
+
+                                    break;
+                                } else {
+                                    $m['p'] = array(
+                                        'passphrase' => true
+                                    );
+                                }
+
+                                $message->setContent($decrypted);
+                            }
+                        } else {
+                            $m['p'] = array(
+                                'passphrase' => false
+                            );
+                        }
                     }
 
                     $m['with'] = $with;

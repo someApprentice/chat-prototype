@@ -1,7 +1,95 @@
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="js/js.cookie.js"></script>
 
+        <script type="text/javascript" src="js/openpgp.min.js"></script>
+        <script type="text/javascript" src="js/openpgp.worker.min.js"></script>
+
         <script type="text/javascript" src="js/ejs.min.js"></script>
+
+        <script id="header-template" type="text/template">
+            <header>
+                    <ul class="authorization-menu">
+                        <li><b><%= name %></b></li>
+                        <li>
+                            <form method="post" name="logout" action="logout.php">
+                                <input type="hidden" name="token" value="<%= token %>">
+                                <input type="submit" value="Выход">
+                            </form>
+                        </li>
+                    </ul>
+            </header>
+        </script>
+
+        <script id="authorization-form-template" type="text/template">
+            <form method="post" name="registration" action="registration.php" class="authorization-form">
+                <label>
+                    Логин
+                    <input type="text" name="login" pattern="\D{1, 20}" value="<%= login %>" required>
+                    <span class="form-error">
+                        <%= errors['login'] %>
+                    </span>
+                </label>
+
+                <label>
+                    Имя
+                    <input type="text" name="name" pattern="\D{1,20}" value="<%= name %>" required>
+                    <span class="form-error">
+                        <%= errors['name'] %>
+                    </span>
+                </label>
+
+                <label>
+                    Пароль
+                    <input type="password" name="password" pattern="(.){6,128}" required>
+                    <span class="form-error">
+                        <%= errors['password'] %>
+                    </span>
+                </label>
+                <label>
+                    Повторите пароль
+                    <input type="password" name="retryPassword" pattern="(.){6,128}" required>
+                    <span class="form-error">
+                        <%= errors['retryPassword'] %>
+                    </span>
+                </label>
+
+                <input type="submit" name="input" value="Зарегистрироваться">
+            </form>
+        </script>
+
+        <script id="chat-box-template" type="text/template">
+            <div class="chat-box">
+                <div class="contact-box">
+                    <form method="get" name="search-form" class="search-form" action="search.php">
+                        <input type="text" name="q"">
+                        <button type="submit">Поиск</button>
+                    </form>
+
+                    <ul class="contacts">
+                    </ul>
+                </div>
+                
+                <div class="conversation">
+                    <div class="messages-container">
+                        <div class="messages">
+                            <div class="select-dialog">Выбирите диалог</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script id="keys-generation-template" type="text/template">
+            <div class="keys-generation loader">
+                <img src="img/load.gif"> Generating keys...
+            </div>
+        </script>
+
+        <script id="decrypting-template" type="text/template">
+            <div class="decrypting loader">
+                <img src="img/load.gif"> Decrypting...
+            </div>
+        </script>
 
         <script id="connection-error-template" type="text/template">
             <span class="connection-error">
@@ -54,8 +142,24 @@
             </div>
         </script>
 
+        <script id="passphrase-form-template" type="text/template">
+            <div class="enter-passphrase">
+                <form method="post" name="passphrase" data-with="<%= datawith %>" data-offset="<%= offset %>" action="conversation.php?with=<%= datawith %>&offset=<%= offset %>" class="passphrase-form">
+                    <label>
+                        Passphrase
+                        <input type="password" name="passphrase" pattern="(.){6,128}" required>
+                        <span class="passphrase-error">
+                            Wrong passphrase
+                        </span>
+                    </label>
+                </form>
+            </div>
+        </script>
+
         <script type="text/javascript" src="js/contacts.js"></script>
         <script type="text/javascript" src="js/conversation.js"></script>
+        <script type="text/javascript" src="js/crypter.js"></script>
+        <script type="text/javascript" src="js/backend.js"></script>
         <script type="text/javascript" src="js/chat.js"></script>
     </body>
 </html>

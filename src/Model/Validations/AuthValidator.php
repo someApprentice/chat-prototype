@@ -53,11 +53,11 @@ class AuthValidator extends Validator
         }
 
         if (!AuthValidator::validatePassword($post['password'])) {
-            $error['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
+            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
         }
 
         if (!AuthValidator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
-            $errors['retryPassword'] = "Пароль должен быть длиньше 6 символов и короче 128";
+            $errors['retryPassword'] = "Пароли не совпадают";
         }
 
         return $errors;

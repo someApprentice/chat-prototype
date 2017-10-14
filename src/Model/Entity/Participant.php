@@ -9,6 +9,8 @@ class Participant
 
     protected $user;
 
+    protected $login; //gpg key id
+
     public function getId()
     {
         return $this->id;
@@ -41,6 +43,18 @@ class Participant
     public function setUser(int $user)
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getLogin()
+    {
+        return $this->login;
+    }
+
+    public function setLogin(string $login)
+    {
+        $this->login = $login;
 
         return $this;
     }

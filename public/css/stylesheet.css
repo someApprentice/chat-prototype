@@ -144,22 +144,53 @@ header {
     margin: 20%
 }
 
+.enter-passphrase {
+    margin: 20%;
+}
+
+.enter-passphrase input[name="passphrase"], .passphrase-error {
+    display: block;
+    padding: 5px;
+}
+
+.passphrase-error {
+    color:red;
+}
+
 .authorization-form {
     margin: 0 auto;
     width: 75%;
 }
 
-.authorization-form label, .authorization-form input {
+.authorization-form label{
     display: block;
-    width: 200px;
+}
+
+.authorization-form input {
+    display: block;
+    width: 196px;
 }
 
 .authorization-form label, .authorization-form input[type="submit"] {
     margin: 10px auto;
+    width: 200px;
 }
 
 .authorization-form input[type="submit"] {
     height: 36px;
+}
+
+.form-error {
+    color: red;
+}
+
+.loader {
+    text-align: center;
+}
+
+.loader img {
+    margin: 0 5px;
+    vertical-align: -10px;
 }
 
 .connection-error {

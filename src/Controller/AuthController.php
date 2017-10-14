@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Model\Database\UserGateway;
 use App\Model\Validations\AuthValidator as Validator;
+use App\Model\Crypter;
 use App\Model\Helper;
 use App\Model\Entity\User;
 use App\View\View;
@@ -12,11 +13,14 @@ class AuthController extends Controller
 {
     protected $database;
 
+    protected $crypter;
+
     protected $view;
 
-    public function __construct(UserGateway $database, View $view)
+    public function __construct(UserGateway $database, Crypter $crypter, View $view)
     {
         $this->database = $database;
+        $this->crypter = $crypter;
         $this->view = $view;
     }
 
@@ -58,7 +62,15 @@ class AuthController extends Controller
                 $user->setHash($hash);
                 $user->setSalt($salt);
 
-                $this->database->addUser($user);
+                $user = $this->database->addUser($user);
+
+                $this->crypter->generateKeys($post['login'], $post['password']);
+
+                $privateKey = $this->crypter->getPrivateKey($post['login']);
+                $publicKey = $this->crypter->getPublicKey($post['login']);
+
+                $this->database->addPrivateKey($user->getId(), $privateKey);
+                $this->database->addPublicKey($user->getId(), $publicKey);
 
                 $this->login();
 

@@ -1,9 +1,10 @@
-function Conversation(backend, view) {
+function Conversation(backend, crypter, view) {
   this.backend = backend;
+  this.crypter = crypter;
   this.view = view;
 
   this.timeout;
-  this.t = 500;
+  this.t = 300;
 
   this.token = Cookies.get('token');
 }
@@ -32,12 +33,30 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
               var actualUrl = window.location.href;
 
               if (url === actualUrl) {
-                that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
-                that.view.showLastMessages(data['messages']);
-                that.view.moveMessagesToBottom();
-              }
+                that.view.showDecryptionLoader();
 
-              processing = false;
+                var promises = [];
+
+                for (var key in data['messages']) {
+                  decrypted = that.crypter.decrypt(data['messages'][key].content);
+
+                  promises.push(decrypted);
+                }
+
+                Promise.all(promises).then(function(decrypted) {
+                  for (var key in data['messages']) {
+                    data['messages'][key].content = decrypted[key].data;
+                  }
+
+                  that.view.removeDecryptionLoader();
+
+                  that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
+                  that.view.showLastMessages(data['messages']);
+                  that.view.moveMessagesToBottom();
+
+                  processing = false;
+                });
+              }
             },
 
             function(jqXHR, textStatus) {
@@ -53,34 +72,60 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
 };
 
 Conversation.prototype.handleClickOnMoreMessages = function() {
+  var processing = false;
+
   $(this.view.moremessages).click(function(e) {
     e.preventDefault();
 
     var that = this;
 
-    var url = window.location.href;
+    if (!processing) {
+      processing = true;
 
-    var datawith = $('a', that.view.moremessages).attr('data-with');
-    var offset = $('a', that.view.moremessages).attr('data-offset');
-    var count = $('a', that.view.moremessages).attr('data-count');
+      var url = window.location.href;
 
-    that.backend.getLastMessages(datawith, offset).then(
-      function(data) {
-        var actualUrl = window.location.href;
+      var datawith = $('a', that.view.moremessages).attr('data-with');
+      var offset = $('a', that.view.moremessages).attr('data-offset');
+      var count = $('a', that.view.moremessages).attr('data-count');
 
-        if (url === actualUrl) {
-          that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);  
-          that.view.showLastMessages(data['messages']);
-          that.view.moveMessagesToBottom();
+      that.backend.getLastMessages(datawith, offset).then(
+        function(data) {
+          var actualUrl = window.location.href;
+
+          if (url === actualUrl) {
+            that.view.showDecryptionLoader();
+
+            var promises = [];
+
+            for (var key in data['messages']) {
+              decrypted = that.crypter.decrypt(data['messages'][key].content);
+
+              promises.push(decrypted);
+            }
+
+            Promise.all(promises).then(function(decrypted) {
+              for (var key in data['messages']) {
+                data['messages'][key].content = decrypted[key].data;
+              }
+
+              that.view.removeDecryptionLoader();
+
+              that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
+              that.view.showLastMessages(data['messages']);
+              that.view.moveMessagesToBottom();
+
+              processing = false;
+            });
+          }
+        },
+
+        function(jqXHR, textStatus) {
+          that.view.showConnectionError();
+
+          that.backend.handleError(jqXHR, textStatus);
         }
-      },
-
-      function(jqXHR, textStatus) {
-        that.view.showConnectionError();
-
-        that.backend.handleError(jqXHR, textStatus);
-      }
-    );
+      );
+    }
   }.bind(this));
 };
 
@@ -122,27 +167,39 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
           token = $(that.view.token).val();
 
       if (message != '') {
-        that.backend.postMessage(to, message, token).then(
-          function(data) {
-            // ...
+        that.backend.getPublicKeys(to).then(
+          function(publicKeys) {
+            that.crypter.encrypt(publicKeys, message).then(function(encrypted) {
+              that.backend.postMessage(to, encrypted.data, token).then(
+                function(data) {
+                  // ...
+                },
+
+                function(jqXHR, textStatus) {
+                  var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
+                  var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
+
+                  var data = {
+                    to: to,
+                    content: message,
+                    token: token
+                  };
+
+                  var template = $('#resend-message-template').html(); 
+                  var html = ejs.render(template, data);
+
+                  $(that.view.messageblock).append(html);
+
+                  that.view.scrollDownMessages(scrollPosition, scrollHeight);
+
+                  that.backend.handleError(jqXHR, textStatus);
+                }
+              );
+            });
           },
 
           function(jqXHR, textStatus) {
-            var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
-            var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
-
-            var data = {
-              to: to,
-              content: message,
-              token: token
-            };
-
-            var template = $('#resend-message-template').html(); 
-            var html = ejs.render(template, data);
-
-            $(that.view.messageblock).append(html);
-
-            that.view.scrollDownMessages(scrollPosition, scrollHeight);
+            that.view.showConnectionError();
 
             that.backend.handleError(jqXHR, textStatus);
           }
@@ -180,6 +237,37 @@ Conversation.prototype.handleClickOnResendMessage = function() {
   });
 };
 
+Conversation.prototype.handleEnterKeyOnPassphraseForm = function() {
+  this.view.passphraseBox.keydown(
+    function(e) {
+      if (e.keyCode == 13) {
+        e.preventDefault();
+
+        $(this.view.passphraseForm).submit();
+      }
+    }.bind(this)
+  );
+};
+
+Conversation.prototype.handleSubmitOnPassphraseForm = function() {
+  $(this.view.passphraseForm).submit(
+    function(e) {
+      e.preventDefault();
+
+      var that = this;
+
+      var passphrase = $(that.view.passphraseBox).val(),
+          datawith = $(that.view.passphraseForm).attr('data-with'),
+          offset = $(that.view.passphraseForm).attr('data-offset');
+
+      that.crypter.passphrase = passphrase;
+
+      that.runMessages(datawith, offset);
+
+    }.bind(this)
+  );
+};
+
 Conversation.prototype.runMessages = function(datawith, offset) {
   if (offset === undefined) {
     offset = 1;
@@ -188,45 +276,83 @@ Conversation.prototype.runMessages = function(datawith, offset) {
   var that = this;
 
   var url = window.location.href;
-  
-  that.backend.getLastMessages(datawith, offset).then(
-    function(data) {
-      var actualUrl = window.location.href;
 
-      if (url == actualUrl) {
-        that.view.removeSelectDialog();
+  that.view.removeSelectDialog();
 
-        if ($(that.view.moremessages).length) {
-          that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);          
-        } else {
-          that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
+  that.backend.getPrivateKey().then(
+    function(privateKey) {
+      var success = that.crypter.addPrivateKey(privateKey['privateKey']);
 
-          that.handleClickOnMoreMessages();
-          that.handleScrollOnMessageBlock();
-        }
+      if (success) {
+        that.view.removePassphraseForm();
 
-        if ($(that.view.messageform).length) {
-          that.view.showMessageForm(datawith, that.token);        
-        } else {
-          that.view.showMessageForm(datawith, that.token);
+        that.backend.getLastMessages(datawith, offset).then(
+          function(data) {
+            var actualUrl = window.location.href;
 
-          that.handleEnterKeyOnMessageForm();
-          that.handleClickOnMessageInput();
-          that.handleSubmitOnMessageForm();
-        }
+            that.view.showDecryptionLoader();
 
-        that.view.showMessages(data['messages']);
-        that.view.moveMessagesToBottom();
+            if (url == actualUrl) {
+              if ($(that.view.moremessages).length) {
+                that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);          
+              } else {
+                that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
 
-        that.handleClickOnResendMessage();
+                that.handleClickOnMoreMessages();
+                that.handleScrollOnMessageBlock();
+              }
 
-        if (offset < 2) {
-          var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
+              if ($(that.view.messageform).length) {
+                that.view.showMessageForm(datawith, that.token);        
+              } else {
+                that.view.showMessageForm(datawith, that.token);
 
-          that.view.scrollDownMessages(scrollPosition, scrollPosition);
-        }
+                that.handleEnterKeyOnMessageForm();
+                that.handleClickOnMessageInput();
+                that.handleSubmitOnMessageForm();
+              }
 
-        that.refreshMessages(datawith, data.since);
+              var promises = [];
+
+              for (var key in data['messages']) {
+                decrypted = that.crypter.decrypt(data['messages'][key].content);
+
+                promises.push(decrypted);
+              }
+
+              Promise.all(promises).then(function(decrypted) {
+                for (var key in data['messages']) {
+                  data['messages'][key].content = decrypted[key].data;
+                }
+
+                that.view.removeDecryptionLoader();
+
+                that.view.showMessages(data['messages']);
+                that.view.moveMessagesToBottom();
+
+                that.handleClickOnResendMessage();
+
+                if (offset < 2) {
+                  var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
+
+                  that.view.scrollDownMessages(scrollPosition, scrollPosition);
+                }
+
+                that.refreshMessages(datawith, data.since);
+              });
+            }
+          },
+
+          function(jqXHR, textStatus) {
+            that.view.showConnectionError();
+
+            that.backend.handleError(jqXHR, textStatus);
+          }
+        );
+      } else {
+        that.view.showPassphraseForm(datawith, offset);
+        that.handleEnterKeyOnPassphraseForm();
+        that.handleSubmitOnPassphraseForm();
       }
     },
 
@@ -239,6 +365,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
 }
 
 Conversation.prototype.refreshMessages = function(datawith, since) {
+
   var that = this;
 
   var url = window.location.href;
@@ -251,14 +378,28 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
       var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
 
       if (url == actualUrl) {
-        that.view.showNewMessages(data['messages']);
-        that.view.scrollDownMessages(scrollPosition, scrollHeight);
+        var promises = [];
 
-        clearTimeout(that.timeout);
+        for (var key in data['messages']) {
+          decrypted = that.crypter.decrypt(data['messages'][key].content);
 
-        that.timeout = setTimeout(function() {
-          that.refreshMessages(datawith, data.since);
-        }, that.t);
+          promises.push(decrypted);
+        }
+
+        Promise.all(promises).then(function(decrypted) {
+          for (var key in data['messages']) {
+            data['messages'][key].content = decrypted[key].data;
+          }
+
+          that.view.showNewMessages(data['messages']);
+          that.view.scrollDownMessages(scrollPosition, scrollHeight);
+
+          clearTimeout(that.timeout);
+
+          that.timeout = setTimeout(function() {
+            that.refreshMessages(datawith, data.since);
+          }, that.t);
+        });
       }
     },
 
@@ -290,6 +431,11 @@ function ConversationView() {
   this.token = $('input[name="token"]', this.messageform);
   this.submit = $('input[type="submit"]', this.messageform);
 
+  this.passphraseForm = $('.passphrase-form', this.conversation);
+  this.passphraseBox = $('input[name="passphrase"]', this.passphraseForm);
+
+  this.decryptionLoader = $('.decrypting');
+
   this.selectDialog = $('.select-dialog', this.conversation);
 }
 
@@ -317,7 +463,6 @@ ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, c
       $(this.moremessages).remove();
     }
   }
-
 
   this.moremessages = $('.get-more-messages');
 };
@@ -386,6 +531,15 @@ ConversationView.prototype.showNewMessages = function(messages) {
   this.messages = $('.message');
 };
 
+ConversationView.prototype.showDecryptionLoader = function() {
+  var template = $('#decrypting-template').html();
+  var html = ejs.render(template, {});
+
+  $(this.messageblock).prepend(html);
+
+  this.decryptionLoader = $('.decrypting');
+};
+
 ConversationView.prototype.showConnectionError = function() {
   if ($('.connection-error').length == 0) {
     var template = $('#connection-error-template').html(); 
@@ -399,11 +553,42 @@ ConversationView.prototype.showConnectionError = function() {
   }
 };
 
+ConversationView.prototype.showPassphraseForm = function(datawith, offset) {
+  var data = {
+    datawith: datawith,
+    offset: offset
+  };
+
+  var template = $('#passphrase-form-template').html();
+  var html = ejs.render(template, data);
+
+  $(this.messageblock).html(html);
+
+  this.passphraseForm = $('.passphrase-form', this.conversation);
+  this.passphraseBox = $('input[name="passphrase"]', this.passphraseForm);
+};
+
+ConversationView.prototype.removePassphraseForm = function() {
+  if ($(this.passphraseForm).length) {
+    $(this.passphraseForm).remove();
+
+    this.passphraseForm = $('.passphraseForm', this.conversation);
+  }
+};
+
+ConversationView.prototype.removeDecryptionLoader = function() {
+  if ($(this.decryptionLoader).length) {
+    $(this.decryptionLoader).remove();
+
+    this.decryptionLoader = $('.decrypting', this.conversation);
+  }
+};
+
 ConversationView.prototype.removeSelectDialog = function() {
   if ($(this.selectDialog).length) {
     $(this.selectDialog).remove();
 
-    this.selectDialog = $('.select-dialog');
+    this.selectDialog = $('.select-dialog', this.conversation);
   }
 };
 
@@ -418,12 +603,12 @@ ConversationView.prototype.moveMessagesToBottom = function() {
   if (messagesHeight < messageContainerHeight) {
     space = messageContainerHeight - messagesHeight;
 
-    this.messages.first().css('padding-top', space);
-  } 
+    this.messageblock.css('padding-top', space);
+  }
 };
 
 // may b' there is some better way
-ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollHeight) {  
+ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollHeight) {
   var newBottomScrollPosition = $(this.messagescontainer).prop('scrollHeight');
 
   if (Math.round(scrollPosition) == scrollHeight) {
