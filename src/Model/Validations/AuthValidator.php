@@ -45,19 +45,19 @@ class AuthValidator extends Validator
         $errors = array();
 
         if (!AuthValidator::validateLogin($post['login'])) {
-            $errors['login'] = "Логин должен быть короче 20 английских символов";
+            $errors['login'] = "Login must be shorter than 20 English characters";
         }
 
         if (!AuthValidator::validateName($post['name'])) {
-            $errors['name'] = "Имя должно быть короче 20 русских или английских символов";
+            $errors['name'] = "Name must be shorter than 20 English characters";
         }
 
         if (!AuthValidator::validatePassword($post['password'])) {
-            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 20";
+            $errors['password'] = "Password must be longer than 6 characters";
         }
 
         if (!AuthValidator::isPasswordsEquals($post['password'], $post['retryPassword'])) {
-            $errors['retryPassword'] = "Пароли не совпадают";
+            $errors['retryPassword'] = "Passwords do not match";
         }
 
         return $errors;
@@ -67,11 +67,11 @@ class AuthValidator extends Validator
     {
         $errors = array();
         if (!AuthValidator::validateLogin($post['login'])) {
-            $errors['login'] = "Логин должен быть короче 20 английских символов";
+            $errors['login'] = "Login must be shorter than 20 English characters";
         }
 
         if (!AuthValidator::validatePassword($post['password'])) {
-            $errors['password'] = "Пароль должен быть длиньше 6 символов и короче 128";
+            $errors['password'] = "Password must be longer than 6 characters";
         }
 
         return $errors;

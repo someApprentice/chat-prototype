@@ -1,7 +1,7 @@
     <div class="container">
         <form method="post" name="login" action="login.php" class="authorization-form">
             <label>
-                Логин
+                Login
                 <input type="text" name="login" pattern="\D{1, 20}" required value="<?= (isset($post['login'])) ? htmlspecialchars($post['login'], ENT_QUOTES) : '' ?>">
                 <span class="form-error">
                     <?= (isset($errors) and array_key_exists('login', $errors) ? $errors['login'] : '' ) ?>
@@ -9,12 +9,12 @@
             </label>
 
             <label>
-                Пароль
+                Password
                 <input type="password" name="password" pattern="(.){6,128}" required>
             </label>
 
-            <input type="submit" name="input" value="Войти">
+            <input type="submit" name="input" value="Sign In">
 
-            <label><a href="registration.php">Регистрация</a></label>
+            <label><a href="registration.php">Registration</a></label>
         </form>
     </div>

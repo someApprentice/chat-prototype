@@ -512,7 +512,7 @@ class ApiController extends Controller
 
                 $this->crypter->generateKeys($post['login'], $post['password']);
 
-                $privateKey = $this->crypter->getPrivateKey($post['login']);
+                $privateKey = $this->crypter->getPrivateKey($post['login'], $post['password']);
                 $publicKey = $this->crypter->getPublicKey($post['login']);
 
                 $this->database->addPrivateKey($user->getId(), $privateKey);

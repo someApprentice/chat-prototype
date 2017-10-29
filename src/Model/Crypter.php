@@ -61,18 +61,21 @@ EOT
         //var_dump($process->getOutput());
     }
 
-    public function getPrivateKey($id)
+    public function getPrivateKey($id, $passphrase)
     {
-        $process = new Process("gpg --armor --export-secret-key {$id}");
+        $process = new Process("gpg --batch --passphrase-fd 0 --armor --export-secret-key {$id}");
+
+        $process->setInput($passphrase);
+
         $process->run();
 
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
 
-        $publicKey = $process->getOutput();
+        $privateKey = $process->getOutput();
 
-        return $publicKey;
+        return $privateKey;
     }
 
     // public function removePrivateKey($id)
@@ -97,9 +100,12 @@ EOT
     //     }
     // }
 
-    public function getPublicKey($id)
+    public function getPublicKey($id, $passphrase)
     {
-        $process = new Process("gpg --armor --export {$id}");
+        $process = new Process("gpg --batch --passphrase-fd 0 --armor --export {$id}");
+
+        $process->setInput($passphrase);
+
         $process->run();
 
         if (!$process->isSuccessful()) {

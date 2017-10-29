@@ -49,7 +49,7 @@ class AuthController extends Controller
             $errors = Validator::validateRegistrationPost($post);
 
             if ($this->database->getUserByColumn('login', $post['login'])) {
-               $errors['login'] = "Логин уже существует";
+               $errors['login'] = "Login already exist";
             }
 
             if (empty($errors)) {
@@ -66,7 +66,7 @@ class AuthController extends Controller
 
                 $this->crypter->generateKeys($post['login'], $post['password']);
 
-                $privateKey = $this->crypter->getPrivateKey($post['login']);
+                $privateKey = $this->crypter->getPrivateKey($post['login'], $post['password']);
                 $publicKey = $this->crypter->getPublicKey($post['login']);
 
                 $this->database->addPrivateKey($user->getId(), $privateKey);
@@ -118,10 +118,10 @@ class AuthController extends Controller
 
                         die();
                     } else {
-                        $errors['login'] = "Совпадений не найдено";
+                        $errors['login'] = "No matches found";
                     }
                 } else {
-                    $errors['login'] = "Совпадений не найдено";
+                    $errors['login'] = "No matches found";
                 }
             }
         }

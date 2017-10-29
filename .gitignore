@@ -1,1 +1,4 @@
 /vendor/
+/.gnupg/
+/src/config.ini
+error-output.txt

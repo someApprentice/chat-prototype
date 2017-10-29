@@ -168,7 +168,8 @@ header {
 
 .authorization-form input {
     display: block;
-    width: 196px;
+    box-sizing: border-box;
+    width: 200px;
 }
 
 .authorization-form label, .authorization-form input[type="submit"] {

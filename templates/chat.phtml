@@ -2,7 +2,7 @@
         <div class="contact-box">
             <form method="get" name="search-form" class="search-form" action="search.php">
                 <input type="text" name="q" value="<?= isset($query) ? $query : '' ?>">
-                <button type="submit">Поиск</button>
+                <button type="submit">Search</button>
             </form>
 
             <ul class="contacts">
@@ -11,7 +11,7 @@
                         <li class="<?= (isset($messages['with']) and $contact->getContact() == $messages['with']) ? 'checked' : '' ?>"><a data-with="<?= $contact->getContact() ?>" href="conversation.php?with=<?= $contact->getContact() ?>"><label><?= $contact->getName() ?></label></a></li>
                     <?php endforeach; ?>
                 <?php else : ?>
-                    <span class="contacts-not-found">Ничего не найдено</span>
+                    <span class="contacts-not-found">Nothing found</span>
                 <?php endif; ?>
             </ul>
         </div>
@@ -21,7 +21,7 @@
                 <?php if (isset($messages['with'])) : ?>
                     <?php if ($messages['count'] < $messages['totalCount']) :?>
                         <div class="get-more-messages">
-                            <label><a data-with="<?= $messages['with'] ?>" data-offset="<?= $messages['offset'] + 1 ?>" href="conversation.php?with=<?= $messages['with'] ?>&offset=<?= $messages['offset'] + 1 ?><?= (isset($messages['messages'][0])) ? '#message-' . $messages['messages'][0]->getId() : '' ?>">Получить больше сообщений</a></label>
+                            <label><a data-with="<?= $messages['with'] ?>" data-offset="<?= $messages['offset'] + 1 ?>" href="conversation.php?with=<?= $messages['with'] ?>&offset=<?= $messages['offset'] + 1 ?><?= (isset($messages['messages'][0])) ? '#message-' . $messages['messages'][0]->getId() : '' ?>">Get more messages</a></label>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
@@ -55,7 +55,7 @@
                             <?php endif; ?>
                         <?php endif; ?>
                     <?php else : ?>
-                        <div class="select-dialog">Выбирите диалог</div>
+                        <div class="select-dialog">Select Dialog</div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -66,7 +66,7 @@
 
                     <input type="hidden" name="token" value="<?= $_COOKIE['token'] ?>">
 
-                    <input type="submit" name="submit" value="Отправить">
+                    <input type="submit" name="submit" value="Send">
                  </form>
              <?php endif; ?>
         </div>
