@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Model\Database\UserGateway;
 use App\Model\Validations\AuthValidator as Validator;
-use App\Model\Crypter;
+use App\Model\Authorizer;
 use App\Model\Helper;
 use App\Model\Entity\User;
 use App\View\View;
@@ -13,14 +13,14 @@ class AuthController extends Controller
 {
     protected $database;
 
-    protected $crypter;
+    protected $authorizer;
 
     protected $view;
 
-    public function __construct(UserGateway $database, Crypter $crypter, View $view)
+    public function __construct(UserGateway $database, Authorizer $authorizer, View $view)
     {
         $this->database = $database;
-        $this->crypter = $crypter;
+        $this->authorizer = $authorizer;
         $this->view = $view;
     }
 
@@ -53,24 +53,7 @@ class AuthController extends Controller
             }
 
             if (empty($errors)) {
-                $salt = Helper::generateSalt();
-                $hash = Helper::generateHash($post['password'], $salt);
-
-                $user = new User();
-                $user->setLogin($post['login']);
-                $user->setName($post['name']);
-                $user->setHash($hash);
-                $user->setSalt($salt);
-
-                $user = $this->database->addUser($user);
-
-                $this->crypter->generateKeys($post['login'], $post['password']);
-
-                $privateKey = $this->crypter->getPrivateKey($post['login'], $post['password']);
-                $publicKey = $this->crypter->getPublicKey($post['login']);
-
-                $this->database->addPrivateKey($user->getId(), $privateKey);
-                $this->database->addPublicKey($user->getId(), $publicKey);
+                $this->authorizer->register($post['login'], $post['name'], $post['password']);
 
                 $this->login();
 
@@ -104,22 +87,12 @@ class AuthController extends Controller
             $errors = Validator::validateLoginPost($post);
 
             if (empty($errors)) {
-                $user = $this->database->getUserByColumn('login', $post['login']);
+                $user = $this->authorizer->login($post['login'], $post['password']);
 
                 if ($user) {
-                    if ($user->getHash() == Helper::generateHash($post['password'], $user->getSalt())) {
-                        $expires = 60 * 60 * 24 * 30 * 12 * 3;
-                        
-                        setcookie('id', $user->getId(), time() + $expires, '/', null, null);
-                        setcookie('hash', $user->getHash(), time() + $expires, '/', null, null);
-                        setcookie('token', Helper::generateToken(), time() + $expires, '/', null, null);
+                    $this->redirect();
 
-                        $this->redirect();
-
-                        die();
-                    } else {
-                        $errors['login'] = "No matches found";
-                    }
+                    die();
                 } else {
                     $errors['login'] = "No matches found";
                 }
@@ -132,9 +105,7 @@ class AuthController extends Controller
     public function logout() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (Validator::validateToken($_POST['token']) and $this->getLogged()) {
-                setcookie('id', null, time()-1, '/');
-                setcookie('hash', null, time()-1, '/');
-                setcookie('token', null, time()-1, '/');
+                $this->authorizer->logout();
             }
         }
 
@@ -143,14 +114,13 @@ class AuthController extends Controller
 
     public function getLogged()
     {
-        if (isset($_COOKIE['id'])) {
-            $user = $this->database->getUserByColumn('id', $_COOKIE['id']);
+        if (isset($_COOKIE['id']) and isset($_COOKIE['token'])) {
+            $id = $_COOKIE['id'];
+            $hash = $_COOKIE['hash'];
 
-            if (isset($_COOKIE['token'])) {
-                if ($user->getHash() == $_COOKIE['hash']) {
-                    return $user;
-                }
-            }
+            $user = $this->authorizer->getLogged($id, $hash);
+
+            return $user;
         }
 
         return false;

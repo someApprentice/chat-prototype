@@ -7,6 +7,7 @@ use App\Model\Database\TableDataGateway;
 use App\Model\Database\UserGateway;
 use App\Model\Database\MessageGateway;
 use App\Model\Crypter;
+use App\Model\Authorizer;
 use App\View\View;
 use App\Controller\AuthController;
 use App\Controller\ConversationController;
@@ -58,12 +59,16 @@ $container['Crypter'] = function ($c) {
     return new Crypter();
 };
 
+$container['Authorizer'] = function ($c) {
+    return new Authorizer($c['UserGateway'], $c['Crypter']);
+};
+
 $container['View'] = function ($c) {
     return new View();
 };
 
 $container['AuthController'] = function ($c) {
-    return new AuthController($c['UserGateway'], $c['Crypter'], $c['View']);
+    return new AuthController($c['UserGateway'], $c['Authorizer'], $c['View']);
 };
 
 $container['ConversationController'] = function ($c) {
@@ -79,5 +84,5 @@ $container['SearchController'] = function ($c) {
 };
 
 $container['ApiController'] = function ($c) {
-    return new ApiController($c['AuthController'], $c['MessageGateway'], $c['Crypter']);
+    return new ApiController($c['AuthController'], $c['MessageGateway'], $c['Authorizer']);
 };

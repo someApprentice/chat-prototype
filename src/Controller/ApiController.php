@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Controller\Controller;
 use App\Controller\AuthController;
 use App\Model\Database\MessageGateway;
-use App\Model\Crypter;
+use App\Model\Authorizer;
 use App\Model\Helper;
 use App\Model\Validations\AuthValidator as Validator;
 use App\Model\Entity\User;
@@ -19,13 +19,13 @@ class ApiController extends Controller
 
     protected $database;
 
-    protected $crypter;
+    protected $authorizer;
 
-    public function __construct(AuthController $authController, MessageGateway $database, Crypter $crypter)
+    public function __construct(AuthController $authController, MessageGateway $database, Authorizer $authorizer)
     {
         $this->authController = $authController;
         $this->database = $database;
-        $this->crypter = $crypter;
+        $this->authorizer = $authorizer;
     }
 
     public function send()
@@ -499,24 +499,7 @@ class ApiController extends Controller
             }
 
             if (empty($errors)) {
-                $salt = Helper::generateSalt();
-                $hash = Helper::generateHash($post['password'], $salt);
-
-                $user = new User();
-                $user->setLogin($post['login']);
-                $user->setName($post['name']);
-                $user->setHash($hash);
-                $user->setSalt($salt);
-
-                $user = $this->database->addUser($user);
-
-                $this->crypter->generateKeys($post['login'], $post['password']);
-
-                $privateKey = $this->crypter->getPrivateKey($post['login'], $post['password']);
-                $publicKey = $this->crypter->getPublicKey($post['login']);
-
-                $this->database->addPrivateKey($user->getId(), $privateKey);
-                $this->database->addPublicKey($user->getId(), $publicKey);
+                $this->authorizer->register($post['login'], $post['name'], $post['password']);
 
                 $this->login();
             } else {
@@ -550,37 +533,26 @@ class ApiController extends Controller
             $errors = Validator::validateLoginPost($post);
 
             if (empty($errors)) {
-                $user = $this->database->getUserByColumn('login', $post['login']);
+                $user = $this->authorizer->login($post['login'], $post['password']);
 
                 if ($user) {
-                    if ($user->getHash() == Helper::generateHash($post['password'], $user->getSalt())) {
-                        $json = array(
-                            'status' => 'Ok',
-                            'user' => array(
-                                'id' => $user->getId(),
-                                'name' => $user->getName(),
-                                'hash' => $user->getHash(),
-                                'token' => Helper::generateToken()
-                            )
-                        );
+                    $json = array(
+                        'status' => 'Ok',
+                        'user' => array(
+                            'id' => $user->getId(),
+                            'name' => $user->getName(),
+                            'hash' => $user->getHash(),
+                            'token' => Helper::generateToken()
+                        )
+                    );
 
-                        echo json_encode($json, \JSON_FORCE_OBJECT);
-                    } else {
-                        $errors['login'] = "No matches found";
-
-                        $json['status'] = 'Error';
-                        $json['errors'] = $errors;
-
-                        
-                        echo json_encode($json, \JSON_FORCE_OBJECT);
-                    }
+                    echo json_encode($json, \JSON_FORCE_OBJECT);
                 } else {
                     $errors['login'] = "No matches found";
 
                     $json['status'] = 'Error';
                     $json['errors'] = $errors;
 
-                    
                     echo json_encode($json, \JSON_FORCE_OBJECT);
                 }
             } else {
@@ -596,10 +568,13 @@ class ApiController extends Controller
     public function getLogged()
     {
         if (isset($_COOKIE['id'])) {
-            $user = $this->database->getUserByColumn('id', $_COOKIE['id']);
-
             if (isset($_COOKIE['token'])) {
-                if ($user->getHash() == $_COOKIE['hash']) {
+                $id = $_COOKIE['id'];
+                $hash = $_COOKIE['hash'];
+
+                $user = $this->authorizer->getLogged($id, $hash);
+
+                if ($user) {
                     $json = array(
                         'status' => 'Ok',
                         'id' => $user->getId(),
