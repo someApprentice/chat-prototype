@@ -35,23 +35,25 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
               if (url === actualUrl) {
                 that.view.showDecryptionLoader();
 
-                var promises = [];
+                var messages = data['messages'];
 
-                for (var key in data['messages']) {
-                  decrypted = that.crypter.decrypt(data['messages'][key].content);
+                var decryptedPromises = [];
 
-                  promises.push(decrypted);
+                for (var key in messages) {
+                  var decryptedPromise = that.crypter.decrypt(messages[key].content);
+
+                  decryptedPromises.push(decryptedPromise);
                 }
 
-                Promise.all(promises).then(function(decrypted) {
-                  for (var key in data['messages']) {
-                    data['messages'][key].content = decrypted[key].data;
+                Promise.all(decryptedPromises).then(function(decrypted) {
+                  for (var key in messages) {
+                    messages[key].content = decrypted[key].data;
                   }
 
                   that.view.removeDecryptionLoader();
 
                   that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
-                  that.view.showLastMessages(data['messages']);
+                  that.view.showLastMessages(messages);
                   that.view.moveMessagesToBottom();
 
                   processing = false;
@@ -95,23 +97,25 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
           if (url === actualUrl) {
             that.view.showDecryptionLoader();
 
-            var promises = [];
+            var messages = data['messages'];
 
-            for (var key in data['messages']) {
-              decrypted = that.crypter.decrypt(data['messages'][key].content);
+            var decryptedPromises = [];
 
-              promises.push(decrypted);
+            for (var key in messages) {
+              var decryptedPromise = that.crypter.decrypt(messages[key].content);
+
+              decryptedPromises.push(decryptedPromise);
             }
 
-            Promise.all(promises).then(function(decrypted) {
-              for (var key in data['messages']) {
-                data['messages'][key].content = decrypted[key].data;
+            Promise.all(decryptedPromises).then(function(decrypted) {
+              for (var key in messages) {
+                messages[key].content = decrypted[key].data;
               }
 
               that.view.removeDecryptionLoader();
 
               that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
-              that.view.showLastMessages(data['messages']);
+              that.view.showLastMessages(messages);
               that.view.moveMessagesToBottom();
 
               processing = false;
@@ -312,22 +316,24 @@ Conversation.prototype.runMessages = function(datawith, offset) {
                 that.handleSubmitOnMessageForm();
               }
 
-              var promises = [];
+              var messages = data['messages'];
 
-              for (var key in data['messages']) {
-                decrypted = that.crypter.decrypt(data['messages'][key].content);
+              var decryptedPromises = [];
 
-                promises.push(decrypted);
+              for (var key in messages) {
+                var decryptedPromise = that.crypter.decrypt(messages[key].content);
+
+                decryptedPromises.push(decryptedPromise);
               }
 
-              Promise.all(promises).then(function(decrypted) {
-                for (var key in data['messages']) {
-                  data['messages'][key].content = decrypted[key].data;
+              Promise.all(decryptedPromises).then(function(decrypted) {
+                for (var key in messages) {
+                  messages[key].content = decrypted[key].data;
                 }
 
                 that.view.removeDecryptionLoader();
 
-                that.view.showMessages(data['messages']);
+                that.view.showMessages(messages);
                 that.view.moveMessagesToBottom();
 
                 that.handleClickOnResendMessage();
@@ -378,20 +384,22 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
       var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
 
       if (url == actualUrl) {
-        var promises = [];
+        var messages = data['messages'];
 
-        for (var key in data['messages']) {
-          decrypted = that.crypter.decrypt(data['messages'][key].content);
+        var decryptedPromises = [];
 
-          promises.push(decrypted);
+        for (var key in messages) {
+          var decryptedPromise = that.crypter.decrypt(messages[key].content);
+
+          decryptedPromises.push(decryptedPromise);
         }
 
-        Promise.all(promises).then(function(decrypted) {
-          for (var key in data['messages']) {
-            data['messages'][key].content = decrypted[key].data;
+        Promise.all(decryptedPromises).then(function(decrypted) {
+          for (var key in messages) {
+            messages[key].content = decrypted[key].data;
           }
 
-          that.view.showNewMessages(data['messages']);
+          that.view.showNewMessages(messages);
           that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
           clearTimeout(that.timeout);
