@@ -8,23 +8,23 @@ function Contacts(backend, modelView, view) {
 }
 
 Contacts.prototype.handleEnterKeyOnSearchForm = function() {
-  this.view.searchbox.keydown(
+  this.view.searchBox.keydown(
     function(e) {
       if (e.keyCode == 13) {
-        $(this.view.searchform).submit();
+        $(this.view.searchForm).submit();
       }
     }.bind(this)
   );
 };
 
 Contacts.prototype.handleSubmitOnSearchForm = function(runMessages) {
-  this.view.searchform.submit(
+  this.view.searchForm.submit(
     function(e) {
       e.preventDefault();
 
       var that = this;
 
-      var q = $(that.view.searchbox).val();
+      var q = $(that.view.searchBox).val();
 
       clearTimeout(that.timeout);
 
@@ -102,15 +102,15 @@ function ContactsModelView() {
 }
 
 function ContactsView() {
-  this.contactbox = $('.contact-box');
-  this.searchform = $('.search-form', this.contactbox);
-  this.searchbox = $('input[name="q"]', this.searchform);
+  this.contactBox = $('.contact-box');
+  this.searchForm = $('.search-form', this.contactBox);
+  this.searchBox = $('input[name="q"]', this.searchForm);
 
-  this.contacts = $('.contacts', this.contactbox);
+  this.contacts = $('.contacts', this.contactBox);
   this.contactList = $('li', this.contacts);
   this.contactLinks = $('a', this.contacts);
 
-  this.contactsNotFoundMessage = $('.contacts-not-found', this.contactbox);
+  this.contactsNotFoundMessage = $('.contacts-not-found', this.contactBox);
 }
 
 ContactsView.prototype.turnCheckedClass = function(e) {

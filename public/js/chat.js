@@ -9,7 +9,7 @@ function Chat(backend, crypter, contacts, conversation, view) {
   this.contacts.handleEnterKeyOnSearchForm();
   this.contacts.handleSubmitOnSearchForm(this.conversation.runMessages.bind(this.conversation));
 
-  if ($(this.conversation.view.moremessages).length != 0) {
+  if ($(this.conversation.view.moreMessages).length != 0) {
     this.conversation.handleClickOnMoreMessages();
     this.conversation.handleScrollOnMessageBlock();
   }
@@ -90,26 +90,26 @@ Chat.prototype.login = function(id, name, hash, token) {
 
   that.view.showChatBox();
 
-  that.contacts.view.contactbox = $('.contact-box');
-  that.contacts.view.searchform = $('.search-form', that.contacts.view.contactbox);
-  that.contacts.view.searchbox = $('input[name="q"]', that.contacts.view.searchform);
+  that.contacts.view.contactBox = $('.contact-box');
+  that.contacts.view.searchForm = $('.search-form', that.contacts.view.contactBox);
+  that.contacts.view.searchBox = $('input[name="q"]', that.contacts.view.searchForm);
 
-  that.contacts.view.contacts = $('.contacts', that.contacts.view.contactbox);
+  that.contacts.view.contacts = $('.contacts', that.contacts.view.contactBox);
 
   that.conversation.token = Cookies.get('token');
 
   that.conversation.view.conversation = $('.conversation');
 
-  that.conversation.view.messagescontainer = $('.messages-container', that.conversation.view.conversation);
-  that.conversation.view.messageblock = $('.messages', that.conversation.view.conversation);
+  that.conversation.view.messagesContainer = $('.messages-container', that.conversation.view.conversation);
+  that.conversation.view.messageBlock = $('.messages', that.conversation.view.conversation);
 
   that.contacts.handleEnterKeyOnSearchForm();
   that.contacts.handleSubmitOnSearchForm(that.conversation.runMessages.bind(that.conversation));
 
   that.contacts.refreshContacts(that.conversation.runMessages.bind(that.conversation));
 
-  if ($(that.conversation.view.messageform).length != 0) {
-    var datawith  = $(that.conversation.view.messageform).attr('data-send-to');
+  if ($(that.conversation.view.messageForm).length != 0) {
+    var datawith  = $(that.conversation.view.messageForm).attr('data-send-to');
 
     that.conversation.runMessages(datawith);
   }
@@ -199,8 +199,8 @@ $(document).ready(function() {
     if (logged['status'] == 'Ok') {
       controller.contacts.refreshContacts(conversation.runMessages.bind(conversation));
 
-      if ($(conversationView.messageform).length != 0) {
-        var datawith  = $(conversationView.messageform).attr('data-send-to');
+      if ($(conversationView.messageForm).length != 0) {
+        var datawith  = $(conversationView.messageForm).attr('data-send-to');
 
         conversation.runMessages(datawith);
       }

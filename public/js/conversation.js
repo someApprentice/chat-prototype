@@ -12,21 +12,21 @@ function Conversation(backend, crypter, view) {
 Conversation.prototype.handleScrollOnMessageBlock = function() {
   var processing = false;
 
-  this.view.messagescontainer.scroll(function() {
+  this.view.messagesContainer.scroll(function() {
     var that = this;
 
-    var quarterOfMessageBlock = $(that.view.messagescontainer).prop('scrollHeight') / 4;
+    var quarterOfMessageBlock = $(that.view.messagesContainer).prop('scrollHeight') / 4;
 
-    if ($(that.view.moremessages).length) {
-      if ($(that.view.messagescontainer).scrollTop() <= quarterOfMessageBlock) {
+    if ($(that.view.moreMessages).length) {
+      if ($(that.view.messagesContainer).scrollTop() <= quarterOfMessageBlock) {
         if (!processing) {
           processing = true;
 
           var url = window.location.href;
 
-          var datawith = $('a', that.view.moremessages).attr('data-with');
-          var offset = $('a', that.view.moremessages).attr('data-offset');
-          var count = $('a', that.view.moremessages).attr('data-count');
+          var datawith = $('a', that.view.moreMessages).attr('data-with');
+          var offset = $('a', that.view.moreMessages).attr('data-offset');
+          var count = $('a', that.view.moreMessages).attr('data-count');
 
           that.backend.getLastMessages(datawith, offset).then(
             function(data) {
@@ -74,7 +74,7 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
 Conversation.prototype.handleClickOnMoreMessages = function() {
   var processing = false;
 
-  $(this.view.moremessages).click(function(e) {
+  $(this.view.moreMessages).click(function(e) {
     e.preventDefault();
 
     var that = this;
@@ -84,9 +84,9 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
 
       var url = window.location.href;
 
-      var datawith = $('a', that.view.moremessages).attr('data-with');
-      var offset = $('a', that.view.moremessages).attr('data-offset');
-      var count = $('a', that.view.moremessages).attr('data-count');
+      var datawith = $('a', that.view.moreMessages).attr('data-with');
+      var offset = $('a', that.view.moreMessages).attr('data-offset');
+      var count = $('a', that.view.moreMessages).attr('data-count');
 
       that.backend.getLastMessages(datawith, offset).then(
         function(data) {
@@ -130,15 +130,15 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
 };
 
 Conversation.prototype.handleEnterKeyOnMessageForm = function() {
-  this.view.messagebox.keydown(
+  this.view.messageBox.keydown(
     function(e) {
       if (e.ctrlKey && e.keyCode == 13) {
-        $(this.view.messagebox).val($(this.view.messagebox).val() + "\n");
+        $(this.view.messageBox).val($(this.view.messageBox).val() + "\n");
       } else if (e.keyCode == 13) {
         e.preventDefault();
 
-        $(this.view.messageform).submit();
-        $(this.view.messagebox).val('');
+        $(this.view.messageForm).submit();
+        $(this.view.messageBox).val('');
       }
     }.bind(this)
   );
@@ -149,21 +149,21 @@ Conversation.prototype.handleClickOnMessageInput = function() {
     function(e) {
       e.preventDefault();
 
-      $(this.view.messageform).submit();
-      $(this.view.messagebox).val('');
+      $(this.view.messageForm).submit();
+      $(this.view.messageBox).val('');
     }.bind(this)
   );
 };
 
 Conversation.prototype.handleSubmitOnMessageForm = function() {
-  this.view.messageform.submit(
+  this.view.messageForm.submit(
     function(e) {
       e.preventDefault();
 
       var that = this;
 
-      var to = $(that.view.messageform).attr('data-send-to'),
-          message =  $(that.view.messagebox).val(),
+      var to = $(that.view.messageForm).attr('data-send-to'),
+          message =  $(that.view.messageBox).val(),
           token = $(that.view.token).val();
 
       if (message != '') {
@@ -176,8 +176,8 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
                 },
 
                 function(jqXHR, textStatus) {
-                  var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
-                  var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
+                  var scrollPosition = $(that.view.messagesContainer).scrollTop() + $(that.view.messagesContainer).height();      
+                  var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
 
                   var data = {
                     to: to,
@@ -188,7 +188,7 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
                   var template = $('#resend-message-template').html(); 
                   var html = ejs.render(template, data);
 
-                  $(that.view.messageblock).append(html);
+                  $(that.view.messageBlock).append(html);
 
                   that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
@@ -214,7 +214,7 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
 Conversation.prototype.handleClickOnResendMessage = function() {
   var that = this;
 
-  $(this.view.messageblock).on('click', '.resend a', function(e) {
+  $(this.view.messageBlock).on('click', '.resend a', function(e) {
     e.preventDefault();
 
     var resendLink = $(this);
@@ -293,7 +293,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
             that.view.showDecryptionLoader();
 
             if (url == actualUrl) {
-              if ($(that.view.moremessages).length) {
+              if ($(that.view.moreMessages).length) {
                 that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);          
               } else {
                 that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
@@ -302,7 +302,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
                 that.handleScrollOnMessageBlock();
               }
 
-              if ($(that.view.messageform).length) {
+              if ($(that.view.messageForm).length) {
                 that.view.showMessageForm(datawith, that.token);        
               } else {
                 that.view.showMessageForm(datawith, that.token);
@@ -333,7 +333,7 @@ Conversation.prototype.runMessages = function(datawith, offset) {
                 that.handleClickOnResendMessage();
 
                 if (offset < 2) {
-                  var scrollPosition = $(that.view.messagescontainer).prop('scrollHeight');
+                  var scrollPosition = $(that.view.messagesContainer).prop('scrollHeight');
 
                   that.view.scrollDownMessages(scrollPosition, scrollPosition);
                 }
@@ -374,8 +374,8 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
     function(data) {
       var actualUrl = window.location.href;
 
-      var scrollPosition = $(that.view.messagescontainer).scrollTop() + $(that.view.messagescontainer).height();      
-      var scrollHeight = $(that.view.messagescontainer).prop('scrollHeight');
+      var scrollPosition = $(that.view.messagesContainer).scrollTop() + $(that.view.messagesContainer).height();      
+      var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
 
       if (url == actualUrl) {
         var promises = [];
@@ -421,15 +421,15 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
 function ConversationView() {
   this.conversation = $('.conversation');
 
-  this.moremessages = $('.get-more-messages', this.conversation);
-  this.messagescontainer = $('.messages-container', this.conversation);
-  this.messageblock = $('.messages', this.conversation);
+  this.moreMessages = $('.get-more-messages', this.conversation);
+  this.messagesContainer = $('.messages-container', this.conversation);
+  this.messageBlock = $('.messages', this.conversation);
   this.messages = $('.message', this.conversation);
 
-  this.messageform = $('.message-form', this.conversation);
-  this.messagebox = $('textarea[name="message"]', this.messageform);
-  this.token = $('input[name="token"]', this.messageform);
-  this.submit = $('input[type="submit"]', this.messageform);
+  this.messageForm = $('.message-form', this.conversation);
+  this.messageBox = $('textarea[name="message"]', this.messageForm);
+  this.token = $('input[name="token"]', this.messageForm);
+  this.submit = $('input[type="submit"]', this.messageForm);
 
   this.passphraseForm = $('.passphrase-form', this.conversation);
   this.passphraseBox = $('input[name="passphrase"]', this.passphraseForm);
@@ -451,27 +451,27 @@ ConversationView.prototype.showMoreMessagesButton = function(datawith, offset, c
     var template = $('#get-more-messages-template').html();
     var html = ejs.render(template, data);
 
-    if ($(this.moremessages).length) {
-      $('a', this.moremessages).attr('data-with', datawith);
-      $('a', this.moremessages).attr('data-offset', offset);
-      $('a', this.moremessages).attr('data-count', count);
+    if ($(this.moreMessages).length) {
+      $('a', this.moreMessages).attr('data-with', datawith);
+      $('a', this.moreMessages).attr('data-offset', offset);
+      $('a', this.moreMessages).attr('data-count', count);
     } else {
-      $(this.messagescontainer).prepend(html);
+      $(this.messagesContainer).prepend(html);
     }
   } else {
-    if ($(this.moremessages).length) {
-      $(this.moremessages).remove();
+    if ($(this.moreMessages).length) {
+      $(this.moreMessages).remove();
     }
   }
 
-  this.moremessages = $('.get-more-messages');
+  this.moreMessages = $('.get-more-messages');
 };
 
 ConversationView.prototype.showMessageForm = function(to, token) {
-  if ($(this.messageform).length) {
-    $(this.messageform).attr('action', 'send.php?to=' + to);
-    $(this.messageform).attr('data-send-to', to);
-    $('input[name="token"]', this.messageform).val(token);
+  if ($(this.messageForm).length) {
+    $(this.messageForm).attr('action', 'send.php?to=' + to);
+    $(this.messageForm).attr('data-send-to', to);
+    $('input[name="token"]', this.messageForm).val(token);
   } else {
     var data = {
       to: to,
@@ -483,10 +483,10 @@ ConversationView.prototype.showMessageForm = function(to, token) {
 
     $(this.conversation).append(html);
 
-    this.messageform = $('.message-form');
-    this.messagebox = $('textarea[name="message"]', this.messageform);
-    this.token = $('input[name="token"]', this.messageform);
-    this.submit = $('input[type="submit"]', this.messageform);
+    this.messageForm = $('.message-form');
+    this.messageBox = $('textarea[name="message"]', this.messageForm);
+    this.token = $('input[name="token"]', this.messageForm);
+    this.submit = $('input[type="submit"]', this.messageForm);
   }
 };
 
@@ -500,7 +500,7 @@ ConversationView.prototype.showMessages = function(messages) {
   var template = $('#messages-template').html();    
   var html = ejs.render(template, data);
 
-  $(this.messageblock).html(html);
+  $(this.messageBlock).html(html);
 
   this.messages = $('.message');
 };
@@ -513,7 +513,7 @@ ConversationView.prototype.showLastMessages = function(messages) {
   var template = $('#messages-template').html();    
   var html = ejs.render(template, data);
 
-  $(this.messageblock).prepend(html);
+  $(this.messageBlock).prepend(html);
 
   this.messages = $('.message');
 };
@@ -526,7 +526,7 @@ ConversationView.prototype.showNewMessages = function(messages) {
   var template = $('#messages-template').html();    
   var html = ejs.render(template, data);
 
-  $(this.messageblock).append(html);
+  $(this.messageBlock).append(html);
 
   this.messages = $('.message');
 };
@@ -535,7 +535,7 @@ ConversationView.prototype.showDecryptionLoader = function() {
   var template = $('#decrypting-template').html();
   var html = ejs.render(template, {});
 
-  $(this.messageblock).prepend(html);
+  $(this.messageBlock).prepend(html);
 
   this.decryptionLoader = $('.decrypting');
 };
@@ -562,7 +562,7 @@ ConversationView.prototype.showPassphraseForm = function(datawith, offset) {
   var template = $('#passphrase-form-template').html();
   var html = ejs.render(template, data);
 
-  $(this.messageblock).html(html);
+  $(this.messageBlock).html(html);
 
   this.passphraseForm = $('.passphrase-form', this.conversation);
   this.passphraseBox = $('input[name="passphrase"]', this.passphraseForm);
@@ -595,23 +595,23 @@ ConversationView.prototype.removeSelectDialog = function() {
 ConversationView.prototype.moveMessagesToBottom = function() {
   var space = 0;
 
-  var messageContainerHeight = $(this.messagescontainer).outerHeight();
+  var messageContainerHeight = $(this.messagesContainer).outerHeight();
   var messagesHeight = 0;
 
-  messagesHeight = $(this.messageblock).outerHeight(); 
+  messagesHeight = $(this.messageBlock).outerHeight(); 
 
   if (messagesHeight < messageContainerHeight) {
     space = messageContainerHeight - messagesHeight;
 
-    this.messageblock.css('padding-top', space);
+    this.messageBlock.css('padding-top', space);
   }
 };
 
 // may b' there is some better way
 ConversationView.prototype.scrollDownMessages = function(scrollPosition, scrollHeight) {
-  var newBottomScrollPosition = $(this.messagescontainer).prop('scrollHeight');
+  var newBottomScrollPosition = $(this.messagesContainer).prop('scrollHeight');
 
   if (Math.round(scrollPosition) == scrollHeight) {
-    $(this.messagescontainer).scrollTop(newBottomScrollPosition);
+    $(this.messagesContainer).scrollTop(newBottomScrollPosition);
   }
 };
