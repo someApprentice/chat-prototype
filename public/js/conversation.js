@@ -46,17 +46,21 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
                 }
 
                 Promise.all(decryptedPromises).then(function(decrypted) {
-                  for (var key in messages) {
-                    messages[key].content = decrypted[key].data;
+                  actualUrl = window.location.href;
+
+                  if (url == actualUrl) {
+                    for (var key in messages) {
+                      messages[key].content = decrypted[key].data;
+                    }
+
+                    that.view.removeDecryptionLoader();
+
+                    that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
+                    that.view.showLastMessages(messages);
+                    that.view.moveMessagesToBottom();
+
+                    processing = false;
                   }
-
-                  that.view.removeDecryptionLoader();
-
-                  that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
-                  that.view.showLastMessages(messages);
-                  that.view.moveMessagesToBottom();
-
-                  processing = false;
                 });
               }
             },
@@ -108,17 +112,21 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
             }
 
             Promise.all(decryptedPromises).then(function(decrypted) {
-              for (var key in messages) {
-                messages[key].content = decrypted[key].data;
+              actualUrl = window.location.href;
+
+              if (url == actualUrl) {
+                for (var key in messages) {
+                  messages[key].content = decrypted[key].data;
+                }
+
+                that.view.removeDecryptionLoader();
+
+                that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
+                that.view.showLastMessages(messages);
+                that.view.moveMessagesToBottom();
+
+                processing = false;
               }
-
-              that.view.removeDecryptionLoader();
-
-              that.view.showMoreMessagesButton(data['with'], +offset + +1, +count + data['count'], data['totalCount']);
-              that.view.showLastMessages(messages);
-              that.view.moveMessagesToBottom();
-
-              processing = false;
             });
           }
         },
@@ -327,24 +335,28 @@ Conversation.prototype.runMessages = function(datawith, offset) {
               }
 
               Promise.all(decryptedPromises).then(function(decrypted) {
-                for (var key in messages) {
-                  messages[key].content = decrypted[key].data;
+                actualUrl = window.location.href;
+
+                if (url == actualUrl) {
+                  for (var key in messages) {
+                    messages[key].content = decrypted[key].data;
+                  }
+
+                  that.view.removeDecryptionLoader();
+
+                  that.view.showMessages(messages);
+                  that.view.moveMessagesToBottom();
+
+                  that.handleClickOnResendMessage();
+
+                  if (offset < 2) {
+                    var scrollPosition = $(that.view.messagesContainer).prop('scrollHeight');
+
+                    that.view.scrollDownMessages(scrollPosition, scrollPosition);
+                  }
+
+                  that.refreshMessages(datawith, data.since);
                 }
-
-                that.view.removeDecryptionLoader();
-
-                that.view.showMessages(messages);
-                that.view.moveMessagesToBottom();
-
-                that.handleClickOnResendMessage();
-
-                if (offset < 2) {
-                  var scrollPosition = $(that.view.messagesContainer).prop('scrollHeight');
-
-                  that.view.scrollDownMessages(scrollPosition, scrollPosition);
-                }
-
-                that.refreshMessages(datawith, data.since);
               });
             }
           },
@@ -395,18 +407,22 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
         }
 
         Promise.all(decryptedPromises).then(function(decrypted) {
-          for (var key in messages) {
-            messages[key].content = decrypted[key].data;
+          actualUrl = window.location.href;
+
+          if (url == actualUrl) {
+            for (var key in messages) {
+              messages[key].content = decrypted[key].data;
+            }
+
+            that.view.showNewMessages(messages);
+            that.view.scrollDownMessages(scrollPosition, scrollHeight);
+
+            clearTimeout(that.timeout);
+
+            that.timeout = setTimeout(function() {
+              that.refreshMessages(datawith, data.since);
+            }, that.t);
           }
-
-          that.view.showNewMessages(messages);
-          that.view.scrollDownMessages(scrollPosition, scrollHeight);
-
-          clearTimeout(that.timeout);
-
-          that.timeout = setTimeout(function() {
-            that.refreshMessages(datawith, data.since);
-          }, that.t);
         });
       }
     },
