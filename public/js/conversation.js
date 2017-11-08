@@ -6,12 +6,12 @@ function Conversation(backend, crypter, view) {
   this.timeout;
   this.t = 300;
 
+  this.processing = false;
+
   this.token = Cookies.get('token');
 }
 
 Conversation.prototype.handleScrollOnMessageBlock = function() {
-  var processing = false;
-
   this.view.messagesContainer.scroll(function() {
     var that = this;
 
@@ -19,8 +19,8 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
 
     if ($(that.view.moreMessages).length) {
       if ($(that.view.messagesContainer).scrollTop() <= quarterOfMessageBlock) {
-        if (!processing) {
-          processing = true;
+        if (!that.processing) {
+          that.processing = true;
 
           var url = window.location.href;
 
@@ -59,7 +59,7 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
                     that.view.showLastMessages(messages);
                     that.view.moveMessagesToBottom();
 
-                    processing = false;
+                    that.processing = false;
                   }
                 });
               }
@@ -78,15 +78,13 @@ Conversation.prototype.handleScrollOnMessageBlock = function() {
 };
 
 Conversation.prototype.handleClickOnMoreMessages = function() {
-  var processing = false;
-
   $(this.view.moreMessages).click(function(e) {
     e.preventDefault();
 
     var that = this;
 
-    if (!processing) {
-      processing = true;
+    if (!that.processing) {
+      that.processing = true;
 
       var url = window.location.href;
 
@@ -125,7 +123,7 @@ Conversation.prototype.handleClickOnMoreMessages = function() {
                 that.view.showLastMessages(messages);
                 that.view.moveMessagesToBottom();
 
-                processing = false;
+                that.processing = false;
               }
             });
           }
@@ -311,7 +309,10 @@ Conversation.prototype.runMessages = function(datawith, offset) {
                 that.view.showMoreMessagesButton(data['with'], +offset + +1, data['count'], data['totalCount']);
 
                 that.handleClickOnMoreMessages();
-                that.handleScrollOnMessageBlock();
+
+                if (!$.hasData(that.view.messagesContainer[0])) {
+                  that.handleScrollOnMessageBlock();
+                }
               }
 
               if ($(that.view.messageForm).length) {
