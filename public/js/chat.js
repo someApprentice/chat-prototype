@@ -172,8 +172,13 @@ ChatView.prototype.showChatBox = function() {
 };
 
 ChatView.prototype.showKeysLoader = function() {
-  var template = $('#keys-generation-template').html();
-  var html = ejs.render(template, {});
+  var data = {
+    c: 'keys-generation',
+    m: "Generating keys..."
+  };
+
+  var template = $('#loader-template').html();
+  var html = ejs.render(template, data);
 
   $('body').append(html);
 

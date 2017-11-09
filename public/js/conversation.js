@@ -557,8 +557,13 @@ ConversationView.prototype.showNewMessages = function(messages) {
 };
 
 ConversationView.prototype.showDecryptionLoader = function() {
-  var template = $('#decrypting-template').html();
-  var html = ejs.render(template, {});
+  var data = {
+    c: 'decrypting',
+    m: "Decrypting..."
+  };
+
+  var template = $('#loader-template').html();
+  var html = ejs.render(template, data);
 
   $(this.messageBlock).prepend(html);
 
