@@ -319,7 +319,9 @@ class ApiController extends Controller
                         $messages = $this->database->getNewMessages($logged->getId(), $contact->getConference(), $since);
                     }
 
-                    $since = Helper::getCurrentTimeWithMicroseconds();
+                    if (count($messages) > 0) {
+                        $since = end($messages)->getDate();
+                    }
 
                     $m['with'] = $with;
                     $m['since'] =  $since;

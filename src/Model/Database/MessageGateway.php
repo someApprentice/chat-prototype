@@ -93,7 +93,7 @@ class MessageGateway extends UserGateway
     {
         $pdo = $this->pdo;
 
-        $query = $pdo->prepare("SELECT mbox.messageID, messages.author, messages.receiver, users.name, messages.date, .messages.content FROM mbox INNER JOIN messages ON mbox.messageID = messages.id INNER JOIN users ON messages.author = users.id WHERE (user=:user AND conference=:conference) AND messages.date >= :since ORDER BY messages.date ASC");
+        $query = $pdo->prepare("SELECT mbox.messageID, messages.author, messages.receiver, users.name, messages.date, .messages.content FROM mbox INNER JOIN messages ON mbox.messageID = messages.id INNER JOIN users ON messages.author = users.id WHERE (user=:user AND conference=:conference) AND messages.date > :since ORDER BY messages.date ASC");
         $query->bindValue(':user', $user);
         $query->bindValue(':conference', $conference);
         $query->bindValue(':since', $since);
