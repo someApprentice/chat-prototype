@@ -25,11 +25,13 @@ set_exception_handler(function($e) {
     echo $message;
 });
 
+$config = parse_ini_file(__DIR__ . '/config.ini');
+
+putenv("GNUPGHOME={$config['directory']}");
+
 $container = new Pimple();
 
-$container['PDO'] = function () {
-    $config = parse_ini_file(__DIR__ . '/config.ini');
-
+$container['PDO'] = function () use ($config) {
     $pdo = new \PDO(
         "mysql:host={$config['host']}; dbname={$config['name']}; charset=utf8",
         $config['user'],
