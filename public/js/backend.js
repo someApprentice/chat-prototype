@@ -1,4 +1,5 @@
 function Backend() {
+  this.logged;
 
 }
 

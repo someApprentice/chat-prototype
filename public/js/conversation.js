@@ -170,6 +170,8 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
     function(e) {
       e.preventDefault();
 
+      var url = window.location.href;
+
       var that = this;
 
       var to = $(that.view.messageForm).attr('data-send-to'),
@@ -177,34 +179,61 @@ Conversation.prototype.handleSubmitOnMessageForm = function() {
           token = $(that.view.token).val();
 
       if (message != '') {
+        var date = new Date();
+
+        date = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDay() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+
+        var m = {
+          author: that.backend.logged.id,
+          content: message,
+          date: date,
+          name: that.backend.logged.name,
+          receiver: to
+        };
+
+        var scrollPosition = $(that.view.messagesContainer).scrollTop() + $(that.view.messagesContainer).height();
+        var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
+
+        m = that.view.showNewMessages({m});
+
+        that.view.scrollDownMessages(scrollPosition, scrollHeight);
+
         that.backend.getPublicKeys(to).then(
           function(publicKeys) {
             that.crypter.encrypt(publicKeys, message).then(function(encrypted) {
-              that.backend.postMessage(to, encrypted.data, token).then(
-                function(data) {
-                  // ...
-                },
+              var actualUrl = window.location.href;
 
-                function(jqXHR, textStatus) {
-                  var scrollPosition = $(that.view.messagesContainer).scrollTop() + $(that.view.messagesContainer).height();      
-                  var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
+              if (actualUrl == url) {
+                that.backend.postMessage(to, encrypted.data, token).then(
+                  function(data) {
+                    actualUrl = window.location.href;
 
-                  var data = {
-                    to: to,
-                    content: message,
-                    token: token
-                  };
+                    if (actualUrl == url) {
+                      m.attr('data-message-id', data.message.id);
+                    }
+                  },
 
-                  var template = $('#resend-message-template').html(); 
-                  var html = ejs.render(template, data);
+                  function(jqXHR, textStatus) {
+                    var scrollPosition = $(that.view.messagesContainer).scrollTop() + $(that.view.messagesContainer).height();
+                    var scrollHeight = $(that.view.messagesContainer).prop('scrollHeight');
 
-                  $(that.view.messageBlock).append(html);
+                    var data = {
+                      to: to,
+                      content: message,
+                      token: token
+                    };
 
-                  that.view.scrollDownMessages(scrollPosition, scrollHeight);
+                    var template = $('#resend-message-template').html(); 
+                    var html = ejs.render(template, data);
 
-                  that.backend.handleError(jqXHR, textStatus);
-                }
-              );
+                    $(that.view.messageBlock).append(html);
+
+                    that.view.scrollDownMessages(scrollPosition, scrollHeight);
+
+                    that.backend.handleError(jqXHR, textStatus);
+                  }
+                );
+              }
             });
           },
 
@@ -384,7 +413,6 @@ Conversation.prototype.runMessages = function(datawith, offset) {
 }
 
 Conversation.prototype.refreshMessages = function(datawith, since) {
-
   var that = this;
 
   var url = window.location.href;
@@ -416,6 +444,7 @@ Conversation.prototype.refreshMessages = function(datawith, since) {
             }
 
             that.view.showNewMessages(messages);
+
             that.view.scrollDownMessages(scrollPosition, scrollHeight);
 
             clearTimeout(that.timeout);
@@ -551,9 +580,13 @@ ConversationView.prototype.showNewMessages = function(messages) {
   var template = $('#messages-template').html();    
   var html = ejs.render(template, data);
 
-  $(this.messageBlock).append(html);
+  var messages = $($.parseHTML(html));
+
+  $(this.messageBlock).append(messages);
 
   this.messages = $('.message');
+
+  return messages;
 };
 
 ConversationView.prototype.showDecryptionLoader = function() {

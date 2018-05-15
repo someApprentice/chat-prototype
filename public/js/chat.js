@@ -86,6 +86,12 @@ Chat.prototype.login = function(id, name, hash, token) {
   Cookies.set('hash', hash, { expires: expires });
   Cookies.set('token', token, { expires: expires });
 
+  that.backend.logged = {
+    id:id,
+    name:name,
+    hash:hash
+  };
+
   that.view.showHeader(name, token);
 
   that.view.showChatBox();
@@ -202,6 +208,12 @@ $(document).ready(function() {
 
   backend.getLogged().then(function(logged) {
     if (logged['status'] == 'Ok') {
+      this.logged = {
+        id:logged.id,
+        name:logged.name,
+        hash:logged.hash
+      };
+
       controller.contacts.refreshContacts(conversation.runMessages.bind(conversation));
 
       if ($(conversationView.messageForm).length != 0) {
@@ -213,5 +225,5 @@ $(document).ready(function() {
       controller.handleSubmitOnRegisterForm();
       controller.handleSubmitOnLoginForm();
     }
-  });
+  }.bind(backend));
 });

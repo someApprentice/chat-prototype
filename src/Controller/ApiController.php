@@ -77,7 +77,7 @@ class ApiController extends Controller
                                 $message->setReceiver($to);
                                 $message->setContent($post['message']);
 
-                                $this->database->addMessage($message, $participants);
+                                $message = $this->database->addMessage($message, $participants);
 
                                 $contact = $this->database->getUserContact($to, $logged->getId());
 
@@ -97,6 +97,13 @@ class ApiController extends Controller
                                 }
 
                                 $json['status'] = 'Ok';
+                                $json['message'] = [
+                                    'id' => $message->getId(),
+                                    'author' => $message->getAuthor(),
+                                    'receiver' => $message->getReceiver(),
+                                    'name' => $logged->getName(),
+                                    'content' => $message->getContent()
+                                ];
 
                                 echo json_encode($json, \JSON_FORCE_OBJECT);
                             }
