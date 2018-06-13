@@ -170,24 +170,28 @@ class ApiController extends Controller
 
         $m = array();
 
-        $messages = array();
-
-        $totalCount = 0;
-
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
                 if ($this->database->getUserByColumn('id', $with)) {
-                    $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
-
                     $contact = $this->database->getUserContact($logged->getId(), $with);
 
-                    if ($contact) {
-                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+                    if (!$contact) {
+                        header('HTTP/1.1 500 Internal Server Error');
 
-                        $messages = $this->database->getMessages($logged->getId(), $contact->getConference(), $offset);
+                        $e['error'] = "Contact of user {$logged->getId()} with {$with} wasn't found"; 
+
+                        echo json_encode($e, \JSON_FORCE_OBJECT);
+
+                        die();
                     }
+
+                    $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
+                    
+                    $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+
+                    $messages = $this->database->getMessages($logged->getId(), $contact->getConference(), $offset);
 
                     $m['with'] = $with;
                     $m['offset'] =  $offset;
@@ -237,26 +241,30 @@ class ApiController extends Controller
 
         $m = array();
 
-        $messages = array();
-
-        $totalCount = 0;
-
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
                 if ($this->database->getUserByColumn('id', $with)) {
+                    $contact = $this->database->getUserContact($logged->getId(), $with);
+
+                    if (!$contact) {
+                        header('HTTP/1.1 500 Internal Server Error');
+
+                        $e['error'] = "Contact of user {$logged->getId()} with {$with} wasn't found"; 
+
+                        echo json_encode($e, \JSON_FORCE_OBJECT);
+
+                        die();
+                    }
+
                     $offset = (isset($_GET['offset']) and is_numeric($_GET['offset'])) ? $_GET['offset'] : 1;
 
                     $since = Helper::getCurrentTimeWithMicroseconds();
 
-                    $contact = $this->database->getUserContact($logged->getId(), $with);
+                    $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
 
-                    if ($contact) {
-                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
-
-                        $messages = $this->database->getLastMessages($logged->getId(), $contact->getConference(), $offset);
-                    }
+                    $messages = $this->database->getLastMessages($logged->getId(), $contact->getConference(), $offset);
 
                     $m['with'] = $with;
                     $m['since'] =  $since;
@@ -307,24 +315,28 @@ class ApiController extends Controller
 
         $m = array();
 
-        $messages = array();
-
-        $totalCount = 0;
-
         if ($logged) {
             if (isset($_GET['with']) and is_numeric($_GET['with'])) {
                 $with = $_GET['with'];
 
                 if ($this->database->getUserByColumn('id', $with)) {
-                    $since = (isset($_GET['since']) and is_string($_GET['since'])) ? $_GET['since'] : Helper::getCurrentTimeWithMicroseconds();
-
                     $contact = $this->database->getUserContact($logged->getId(), $with);
 
-                    if ($contact) {
-                        $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+                    if (!$contact) {
+                        header('HTTP/1.1 500 Internal Server Error');
 
-                        $messages = $this->database->getNewMessages($logged->getId(), $contact->getConference(), $since);
+                        $e['error'] = "Contact of user {$logged->getId()} with {$with} wasn't found"; 
+
+                        echo json_encode($e, \JSON_FORCE_OBJECT);
+
+                        die();
                     }
+
+                    $since = (isset($_GET['since']) and is_string($_GET['since'])) ? $_GET['since'] : Helper::getCurrentTimeWithMicroseconds();
+
+                    $totalCount = $this->database->getMessagesCount($logged->getId(), $contact->getConference());
+
+                    $messages = $this->database->getNewMessages($logged->getId(), $contact->getConference(), $since);
 
                     if (count($messages) > 0) {
                         $since = end($messages)->getDate();
